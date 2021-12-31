@@ -11,11 +11,11 @@ namespace PartyIcons.Runtime
 {
     public sealed class NameplateUpdater : IDisposable
     {
-        private NameplateView              _view;
-        private PluginAddressResolver      _address;
+        private NameplateView _view;
+        private PluginAddressResolver _address;
         private Hook<SetNamePlateDelegate> _hook;
-        private XivCommonBase              _base;
-        private int                        _forceRedrawCount = 0;
+        private XivCommonBase _base;
+        private int _forceRedrawCount = 0;
 
         public NameplateUpdater(PluginAddressResolver address, NameplateView view, XivCommonBase @base)
         {
@@ -81,7 +81,7 @@ namespace PartyIcons.Runtime
             var npObject = new XivApi.SafeNamePlateObject(namePlateObjectPtr);
             if (npObject == null)
             {
-                _view.SetupDefault(npObject);
+                //_view.SetupDefault(npObject);
                 return _hook.Original(namePlateObjectPtr, isPrefixTitle, displayTitle, title, name, fcName, iconID);
             }
 

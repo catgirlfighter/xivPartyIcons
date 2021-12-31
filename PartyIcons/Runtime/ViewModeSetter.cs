@@ -7,36 +7,40 @@ using Dalamud.Logging;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using PartyIcons.View;
+using PartyIcons.PluginServiceResources;
 
 namespace PartyIcons.Runtime
 {
-    public sealed class ViewModeSetter
+    public class ViewModeSetter
     {
-        [PluginService] public ClientState ClientState { get; set; }
-        [PluginService] public DataManager DataManager { get; set; }
-        [PluginService] public ChatGui     ChatGui     { get; set; }
+        private ClientState _clientState { get; set; }
+        private DataManager _dataManager { get; set; }
+        private ChatGui     _chatGui     { get; set; }
 
         private readonly NameplateView       _nameplateView;
         private readonly Configuration       _configuration;
         private readonly ChatNameUpdater     _chatNameUpdater;
         private readonly PartyListHUDUpdater _partyListHudUpdater;
 
-        private ExcelSheet<ContentFinderCondition> _contentFinderConditionsSheet;
+        private ExcelSheet<ContentFinderCondition>? _contentFinderConditionsSheet;
 
-        public ViewModeSetter(NameplateView nameplateView, Configuration configuration, ChatNameUpdater chatNameUpdater, PartyListHUDUpdater partyListHudUpdater)
+        public ViewModeSetter(Plugin plugin, NameplateView nameplateView, Configuration configuration, ChatNameUpdater chatNameUpdater, PartyListHUDUpdater partyListHudUpdater)
         {
             _nameplateView = nameplateView;
             _configuration = configuration;
             _chatNameUpdater = chatNameUpdater;
             _partyListHudUpdater = partyListHudUpdater;
+            _clientState = plugin.ClientState;
+            _dataManager = plugin.DataManager;
+            _chatGui = plugin.ChatGui;
         }
 
         public void Enable()
         {
-            _contentFinderConditionsSheet = DataManager.GameData.GetExcelSheet<ContentFinderCondition>();
+            _contentFinderConditionsSheet = _dataManager.GameData?.GetExcelSheet<ContentFinderCondition>();
 
             ForceRefresh();
-            ClientState.TerritoryChanged += OnTerritoryChanged;
+            _clientState.TerritoryChanged += OnTerritoryChanged;
         }
 
         public void ForceRefresh()
@@ -49,7 +53,7 @@ namespace PartyIcons.Runtime
 
         public void Disable()
         {
-            ClientState.TerritoryChanged -= OnTerritoryChanged;
+            _clientState.TerritoryChanged -= OnTerritoryChanged;
         }
 
         public void Dispose()
@@ -59,10 +63,10 @@ namespace PartyIcons.Runtime
 
         private void OnTerritoryChanged(object? sender, ushort e)
         {
-            var content = _contentFinderConditionsSheet.FirstOrDefault(t => t.TerritoryType.Row == ClientState.TerritoryType);
+            var content = _contentFinderConditionsSheet?.FirstOrDefault(t => t.TerritoryType.Row == _clientState.TerritoryType);
             if (content == null)
             {
-                PluginLog.Information($"Content null {ClientState.TerritoryType}");
+                PluginLog.Information($"Content null {_clientState.TerritoryType}");
                 _nameplateView.PartyMode = _configuration.NameplateOverworld;
                 _chatNameUpdater.PartyMode = _configuration.ChatOverworld;
                 return;
@@ -70,7 +74,7 @@ namespace PartyIcons.Runtime
 
             if (_configuration.ChatContentMessage)
             {
-                ChatGui.Print($"Entering {content.Name}.");
+                _chatGui.Print($"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}");
             }
 
             var memberType = content.ContentMemberType.Row;
@@ -80,7 +84,7 @@ namespace PartyIcons.Runtime
                 memberType = 2;
             }
 
-            PluginLog.Debug($"Territory changed {content.Name} (id {content.RowId} type {content.ContentType.Row}, terr {ClientState.TerritoryType}, memtype {content.ContentMemberType.Row}, overriden {memberType})");
+            PluginLog.Debug($"Territory changed {content.Name} (id {content.RowId} type {content.ContentType.Row}, terr {_clientState.TerritoryType}, memtype {content.ContentMemberType.Row}, overriden {memberType})");
 
             switch (memberType)
             {
@@ -97,6 +101,11 @@ namespace PartyIcons.Runtime
                 case 4:
                     _nameplateView.PartyMode = _configuration.NameplateAllianceRaid;
                     _chatNameUpdater.PartyMode = _configuration.ChatAllianceRaid;
+                    break;
+
+                case 7:
+                    _nameplateView.PartyMode = _configuration.NameplatePvP;
+                    _chatNameUpdater.PartyMode = _configuration.ChatPvP;
                     break;
 
                 default:

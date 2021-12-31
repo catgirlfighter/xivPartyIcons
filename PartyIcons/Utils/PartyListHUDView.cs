@@ -12,7 +12,7 @@ namespace PartyIcons.Utils
     public unsafe class PartyListHUDView : IDisposable
     {
         private readonly PlayerStylesheet _stylesheet;
-        private readonly GameGui          _gameGui;
+        private readonly GameGui _gameGui;
 
         public PartyListHUDView(GameGui gameGui, PlayerStylesheet stylesheet)
         {
@@ -106,7 +106,7 @@ namespace PartyIcons.Utils
             if (hud == null)
             {
                 PluginLog.Warning("AgentHUD null!");
-                return null;
+                return "";
             }
 
             if (hud->PartyMemberCount > 8)

@@ -14,35 +14,39 @@ namespace PartyIcons.Runtime
     {
         public bool UpdateHUD = false;
 
-        [PluginService] public PartyList   PartyList   { get; set; }
-        [PluginService] public Framework   Framework   { get; set; }
-        [PluginService] public GameNetwork GameNetwork { get; set; }
-        [PluginService] public ClientState ClientState { get; set; }
+        private readonly PartyList _partyList;
+        private readonly Framework _framework;
+        private readonly GameNetwork _gameNetwork;
+        private readonly ClientState _clientState;
 
-        private readonly Configuration    _configuration;
+        private readonly Configuration _configuration;
         private readonly PartyListHUDView _view;
-        private readonly RoleTracker      _roleTracker;
+        private readonly RoleTracker _roleTracker;
 
         private bool _previousInParty = false;
 
-        public PartyListHUDUpdater(PartyListHUDView view, RoleTracker roleTracker, Configuration configuration)
+        public PartyListHUDUpdater(Plugin plugin, PartyListHUDView view, RoleTracker roleTracker, Configuration configuration)
         {
             _view = view;
             _roleTracker = roleTracker;
             _configuration = configuration;
+            _partyList = plugin.PartyList;
+            _framework = plugin.Framework;
+            _gameNetwork = plugin.GameNetwork;
+            _clientState = plugin.ClientState;
         }
 
         public void Enable()
         {
             _roleTracker.OnAssignedRolesUpdated += OnAssignedRolesUpdated;
-            Framework.Update += OnUpdate;
-            GameNetwork.NetworkMessage += OnNetworkMessage;
+            _framework.Update += OnUpdate;
+            _gameNetwork.NetworkMessage += OnNetworkMessage;
         }
 
         public void Dispose()
         {
-            GameNetwork.NetworkMessage -= OnNetworkMessage;
-            Framework.Update -= OnUpdate;
+            _gameNetwork.NetworkMessage -= OnNetworkMessage;
+            _framework.Update -= OnUpdate;
             _roleTracker.OnAssignedRolesUpdated -= OnAssignedRolesUpdated;
         }
 
@@ -54,7 +58,7 @@ namespace PartyIcons.Runtime
 
         private void OnNetworkMessage(IntPtr dataptr, ushort opcode, uint sourceactorid, uint targetactorid, NetworkMessageDirection direction)
         {
-            if (direction == NetworkMessageDirection.ZoneDown && opcode == 0x2ac && targetactorid == ClientState.LocalPlayer?.ObjectId)
+            if (direction == NetworkMessageDirection.ZoneDown && opcode == 0x2ac && targetactorid == _clientState.LocalPlayer?.ObjectId)
             {
                 PluginLog.Debug("PartyListHUDUpdater Forcing update due to zoning");
                 UpdatePartyListHUD();
@@ -63,7 +67,7 @@ namespace PartyIcons.Runtime
 
         private void OnUpdate(Framework framework)
         {
-            var inParty = PartyList.Any();
+            var inParty = _partyList.Any();
             if (!inParty && _previousInParty)
             {
                 PluginLog.Debug("No longer in party, reverting party list HUD changes");
@@ -86,7 +90,7 @@ namespace PartyIcons.Runtime
             }
 
             PluginLog.Debug("Updating party list HUD");
-            foreach (var member in PartyList)
+            foreach (var member in _partyList)
             {
                 var index = _view.GetPartySlotIndex(member.ObjectId);
                 if (index != null && _roleTracker.TryGetAssignedRole(member.Name.ToString(), member.World.Id, out var role))

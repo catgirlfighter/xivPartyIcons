@@ -10,8 +10,8 @@ namespace PartyIcons.View
 {
     public sealed class PlayerContextMenu : IDisposable
     {
-        private readonly XivCommonBase    _base;
-        private readonly RoleTracker      _roleTracker;
+        private readonly XivCommonBase _base;
+        private readonly RoleTracker _roleTracker;
         private readonly PlayerStylesheet _stylesheet;
 
         public PlayerContextMenu(XivCommonBase @base, RoleTracker roleTracker, PlayerStylesheet stylesheet)
@@ -45,13 +45,13 @@ namespace PartyIcons.View
 
             PluginLog.Debug($"Opening submenu for {args.ObjectId}");
 
-            if (_roleTracker.TryGetSuggestedRole(args.Text.TextValue, args.ObjectWorld, out var role))
+            if (_roleTracker.TryGetSuggestedRole(args.Text?.TextValue, args.ObjectWorld, out var role))
             {
                 var roleName = _stylesheet.GetRoleName(role);
                 args.Items.Add(new NormalContextMenuItem($"Assign to {roleName} (suggested)", (args) => OnAssignRole(args, role)));
             }
 
-            if (_roleTracker.TryGetAssignedRole(args.Text.TextValue, args.ObjectWorld, out var currentRole))
+            if (_roleTracker.TryGetAssignedRole(args.Text?.TextValue, args.ObjectWorld, out var currentRole))
             {
                 var swappedRole = RoleIdUtils.Counterpart(currentRole);
                 var swappedRoleName = _stylesheet.GetRoleName(swappedRole);
@@ -63,7 +63,7 @@ namespace PartyIcons.View
 
         private void OnAssignRole(ContextMenuItemSelectedArgs args, RoleId roleId)
         {
-            _roleTracker.OccupyRole(args.Text.TextValue, args.ObjectWorld, roleId);
+            _roleTracker.OccupyRole(args.Text?.TextValue, args.ObjectWorld, roleId);
             _roleTracker.CalculateUnassignedPartyRoles();
         }
 

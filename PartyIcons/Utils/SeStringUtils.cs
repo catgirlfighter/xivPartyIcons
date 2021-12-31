@@ -57,12 +57,23 @@ namespace PartyIcons.Utils
             return seString;
         }
 
-        public static SeString Text(string text, ushort color)
+        //public static SeString Text(string rawText, ushort color)
+        //{
+        //    
+        //    var seString = new SeString(new List<Payload>());
+        //    if (color != 0) seString.Append(new UIForegroundPayload(color));
+        //    seString.Append(new TextPayload(rawText));
+        //    if (color != 0) seString.Append(UIForegroundPayload.UIForegroundOff);
+        //    return seString;
+        //}
+
+        public static SeString Color(SeString text, ushort color)
         {
+            
             var seString = new SeString(new List<Payload>());
-            seString.Append(new UIForegroundPayload(color));
-            seString.Append(new TextPayload(text));
-            seString.Append(UIForegroundPayload.UIForegroundOff);
+            if (color != 0) seString.Append(new UIForegroundPayload(color));
+            seString.Append(text);
+            if (color != 0) seString.Append(UIForegroundPayload.UIForegroundOff);
             return seString;
         }
 

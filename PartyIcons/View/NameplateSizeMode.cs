@@ -5,6 +5,6 @@
         Smaller,
         Medium,
         Bigger,
-        Tiny
+        Tiny,
     }
 }

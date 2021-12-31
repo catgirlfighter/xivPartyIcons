@@ -13,31 +13,36 @@ using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
 using PartyIcons.Stylesheet;
 using PartyIcons.View;
+using PartyIcons.Utils;
 
 namespace PartyIcons.Runtime
 {
     public sealed class ChatNameUpdater : IDisposable
     {
-        [PluginService] private ClientState ClientState { get; set; }
-        [PluginService] private PartyList   PartyList   { get; set; }
-        [PluginService] private ObjectTable ObjectTable { get; set; }
-        [PluginService] private ChatGui     ChatGui     { get; set; }
+        private ClientState _clientState;
+        private PartyList _partyList;
+        private ObjectTable _objectTable;
+        private ChatGui _chatGui;
 
-        private readonly RoleTracker      _roleTracker;
+        private readonly RoleTracker _roleTracker;
         private readonly PlayerStylesheet _stylesheet;
 
-        public ChatMode PartyMode  { get; set; }
+        public ChatMode PartyMode { get; set; }
         public ChatMode OthersMode { get; set; }
 
-        public ChatNameUpdater(RoleTracker roleTracker, PlayerStylesheet stylesheet)
+        public ChatNameUpdater(Plugin plugin, RoleTracker roleTracker, PlayerStylesheet stylesheet)
         {
             _roleTracker = roleTracker;
             _stylesheet = stylesheet;
+            _clientState = plugin.ClientState;
+            _partyList = plugin.PartyList;
+            _objectTable = plugin.ObjectTable;
+            _chatGui = plugin.ChatGui;
         }
 
         public void Enable()
         {
-            ChatGui.ChatMessage += OnChatMessage;
+            _chatGui.ChatMessage += OnChatMessage;
         }
 
         private void OnChatMessage(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
@@ -50,7 +55,7 @@ namespace PartyIcons.Runtime
 
         public void Disable()
         {
-            ChatGui.ChatMessage -= OnChatMessage;
+            _chatGui.ChatMessage -= OnChatMessage;
         }
 
         public void Dispose()
@@ -63,7 +68,10 @@ namespace PartyIcons.Runtime
             var playerPayload = sender.Payloads.FirstOrDefault(p => p is PlayerPayload) as PlayerPayload;
             if (playerPayload == null)
             {
-                playerPayload = new PlayerPayload(ClientState.LocalPlayer.Name.TextValue, ClientState.LocalPlayer.HomeWorld.Id);
+                if (_clientState.LocalPlayer == null)
+                    playerPayload = new PlayerPayload("", 0);
+                else
+                    playerPayload = new PlayerPayload(_clientState.LocalPlayer.Name.TextValue, _clientState.LocalPlayer.HomeWorld.Id);
             }
 
             return playerPayload;
@@ -71,7 +79,7 @@ namespace PartyIcons.Runtime
 
         private bool CheckIfPlayerPayloadInParty(PlayerPayload playerPayload)
         {
-            foreach (var member in PartyList)
+            foreach (var member in _partyList)
             {
                 if (member.Name.ToString() == playerPayload.PlayerName && member.World.Id == playerPayload.World.RowId)
                 {
@@ -87,6 +95,11 @@ namespace PartyIcons.Runtime
             if (type == XivChatType.Party || type == XivChatType.Alliance)
             {
                 var playerNamePayload = sender.Payloads.FirstOrDefault(p => p is TextPayload) as TextPayload;
+                if (playerNamePayload == null)
+                {
+                    prefix = "";
+                    return false;
+                }
                 prefix = playerNamePayload.Text.Substring(0, 1);
                 playerNamePayload.Text = playerNamePayload.Text.Substring(1);
 
@@ -104,10 +117,10 @@ namespace PartyIcons.Runtime
             str.Payloads.RemoveAll(p => p.Type == PayloadType.UIForeground);
         }
 
-        private ClassJob FindSenderJob(PlayerPayload playerPayload)
+        private ClassJob? FindSenderJob(PlayerPayload playerPayload)
         {
-            ClassJob senderJob = null;
-            foreach (var member in PartyList)
+            ClassJob? senderJob = null;
+            foreach (var member in _partyList)
             {
                 if (member.Name.ToString() == playerPayload.PlayerName && member.World.Id == playerPayload.World.RowId)
                 {
@@ -118,7 +131,7 @@ namespace PartyIcons.Runtime
 
             if (senderJob == null)
             {
-                foreach (var obj in ObjectTable)
+                foreach (var obj in _objectTable)
                 {
                     if (obj is PlayerCharacter pc && pc.Name.ToString() == playerPayload.PlayerName && pc.HomeWorld.Id == playerPayload.World.RowId)
                     {
@@ -151,8 +164,8 @@ namespace PartyIcons.Runtime
             }
             else if (mode != ChatMode.GameDefault)
             {
-                ClassJob senderJob = FindSenderJob(playerPayload);
-                if (senderJob.RowId == 0)
+                var senderJob = FindSenderJob(playerPayload);
+                if (senderJob == null || senderJob.RowId == 0)
                 {
                     return;
                 }

@@ -3,9 +3,10 @@
     public enum NameplateMode
     {
         Default,
-        SmallJobIcon,
-        BigJobIcon,
-        BigJobIconAndPartySlot,
+        JobIconAndName,
+        JobIcon,
+        JobIconAndPartySlot,
         RoleLetters,
+        JobIconAndRoleLettersUncolored
     }
 }

@@ -20,33 +20,39 @@ namespace PartyIcons.Runtime
 {
     public sealed class RoleTracker : IDisposable
     {
-        public event Action<string, RoleId> OnRoleOccupied;
-        public event Action<string, RoleId> OnRoleSuggested;
-        public event Action                 OnAssignedRolesUpdated;
+        public event Action<string, RoleId>? OnRoleOccupied;
+        public event Action<string, RoleId>? OnRoleSuggested;
+        public event Action? OnAssignedRolesUpdated;
 
-        [PluginService] private Framework   Framework   { get; set; }
-        [PluginService] private ChatGui     ChatGui     { get; set; }
-        [PluginService] private ClientState ClientState { get; set; }
-        [PluginService] private Condition   Condition   { get; set; }
-        [PluginService] private PartyList   PartyList   { get; set; }
-        [PluginService] private ToastGui    ToastGui    { get; set; }
+        private readonly Framework _framework;
+        private readonly ChatGui _chatGui;
+        private readonly ClientState _clientState;
+        private readonly Condition _condition;
+        private readonly PartyList _partyList;
+        private readonly ToastGui _toastGui;
 
         private readonly Configuration _configuration;
 
-        private bool _currentlyInParty;
-        private uint _territoryId;
-        private int  _previousStateHash;
+        //private bool _currentlyInParty;
+        //private uint _territoryId;
+        private int _previousStateHash;
 
-        private List<(RoleId, string)> _occupationMessages = new();
-        private List<(RoleId, Regex)>  _suggestionRegexes  = new();
+        private readonly List<(RoleId, string)> _occupationMessages = new();
+        private readonly List<(RoleId, Regex)> _suggestionRegexes = new();
 
-        private Dictionary<string, RoleId> _occupiedRoles   = new();
-        private Dictionary<string, RoleId> _assignedRoles   = new();
-        private Dictionary<string, RoleId> _suggestedRoles  = new();
-        private HashSet<RoleId>            _unassignedRoles = new();
+        private readonly Dictionary<string, RoleId> _occupiedRoles = new();
+        private readonly Dictionary<string, RoleId> _assignedRoles = new();
+        private readonly Dictionary<string, RoleId> _suggestedRoles = new();
+        private readonly HashSet<RoleId> _unassignedRoles = new();
 
-        public RoleTracker(Configuration configuration)
+        public RoleTracker(Plugin plugin, Configuration configuration)
         {
+            _framework = plugin.Framework;
+            _chatGui = plugin.ChatGui;
+            _clientState = plugin.ClientState;
+            _condition = plugin.Condition;
+            _partyList = plugin.PartyList;
+            _toastGui = plugin.ToastGui;
             _configuration = configuration;
             foreach (var role in Enum.GetValues<RoleId>())
             {
@@ -70,14 +76,14 @@ namespace PartyIcons.Runtime
 
         public void Enable()
         {
-            ChatGui.ChatMessage += OnChatMessage;
-            Framework.Update += FrameworkOnUpdate;
+            _chatGui.ChatMessage += OnChatMessage;
+            _framework.Update += FrameworkOnUpdate;
         }
 
         public void Disable()
         {
-            ChatGui.ChatMessage -= OnChatMessage;
-            Framework.Update -= FrameworkOnUpdate;
+            _chatGui.ChatMessage -= OnChatMessage;
+            _framework.Update -= FrameworkOnUpdate;
         }
 
         public void Dispose()
@@ -85,18 +91,33 @@ namespace PartyIcons.Runtime
             Disable();
         }
 
-        public bool TryGetSuggestedRole(string name, uint worldId, out RoleId roleId)
+        public bool TryGetSuggestedRole(string? name, uint worldId, out RoleId roleId)
         {
-            return _suggestedRoles.TryGetValue(PlayerId(name, worldId), out roleId);
+            if (name == null)
+            {
+                roleId = 0;
+                return false;
+            }
+            else
+                return _suggestedRoles.TryGetValue(PlayerId(name, worldId), out roleId);
         }
 
-        public bool TryGetAssignedRole(string name, uint worldId, out RoleId roleId)
+        public bool TryGetAssignedRole(string? name, uint worldId, out RoleId roleId)
         {
-            return _assignedRoles.TryGetValue(PlayerId(name, worldId), out roleId);
+            if (name == null)
+            {
+                roleId = 0;
+                return false;
+            }
+            else
+                return _assignedRoles.TryGetValue(PlayerId(name, worldId), out roleId);
         }
 
-        public void OccupyRole(string name, uint world, RoleId roleId)
+        public void OccupyRole(string? name, uint world, RoleId roleId)
         {
+            if (name == null)
+                return;
+
             foreach (var kv in _occupiedRoles.ToArray())
             {
                 if (kv.Value == roleId)
@@ -107,7 +128,7 @@ namespace PartyIcons.Runtime
 
             _occupiedRoles[PlayerId(name, world)] = roleId;
             OnRoleOccupied?.Invoke(name, roleId);
-            ToastGui.ShowQuest($"{name} occupied {roleId}", new QuestToastOptions { DisplayCheckmark = true });
+            _toastGui.ShowQuest($"{name} occupied {roleId}", new QuestToastOptions { DisplayCheckmark = true });
         }
 
         public void SuggestRole(string name, uint world, RoleId roleId)
@@ -154,7 +175,7 @@ namespace PartyIcons.Runtime
             PluginLog.Debug($"Assigning static assignments ({_configuration.StaticAssignments.Count})");
             foreach (var kv in _configuration.StaticAssignments)
             {
-                foreach (var member in PartyList)
+                foreach (var member in _partyList)
                 {
                     var playerId = PlayerId(member);
                     if (_assignedRoles.ContainsKey(playerId))
@@ -181,7 +202,7 @@ namespace PartyIcons.Runtime
             }
 
             PluginLog.Debug("Assigning the rest");
-            foreach (var member in PartyList)
+            foreach (var member in _partyList)
             {
                 if (_assignedRoles.ContainsKey(PlayerId(member)))
                 {
@@ -228,7 +249,7 @@ namespace PartyIcons.Runtime
 
         private void FrameworkOnUpdate(Framework framework)
         {
-            if (!Condition[ConditionFlag.ParticipatingInCrossWorldPartyOrAlliance] && PartyList.Length == 0 && _occupiedRoles.Any())
+            if (!_condition[ConditionFlag.ParticipatingInCrossWorldPartyOrAlliance] && _partyList.Length == 0 && _occupiedRoles.Any())
             {
                 PluginLog.Debug("Resetting occupations, no longer in a party");
                 ResetOccupations();
@@ -236,7 +257,7 @@ namespace PartyIcons.Runtime
             }
 
             var partyHash = 17;
-            foreach (var member in PartyList)
+            foreach (var member in _partyList)
             {
                 unchecked
                 {
@@ -300,8 +321,8 @@ namespace PartyIcons.Runtime
                 var playerPayload = sender.Payloads.FirstOrDefault(p => p is PlayerPayload) as PlayerPayload;
                 if (playerPayload == null)
                 {
-                    playerName = ClientState.LocalPlayer?.Name.TextValue;
-                    playerWorld = ClientState.LocalPlayer?.HomeWorld.Id;
+                    playerName = _clientState.LocalPlayer?.Name.TextValue;
+                    playerWorld = _clientState.LocalPlayer?.HomeWorld.Id;
                 }
                 else
                 {

@@ -16,15 +16,15 @@ namespace PartyIcons
 {
     class PluginUI : IDisposable
     {
-        [PluginService] private DalamudPluginInterface Interface { get; set; }
+        [PluginService] private DalamudPluginInterface? Interface { get; set; }
 
-        private readonly Configuration    _configuration;
+        private readonly Configuration _configuration;
         private readonly PlayerStylesheet _stylesheet;
 
-        private bool    _settingsVisible = false;
+        private bool _settingsVisible = false;
         private Vector2 _windowSize;
-        private string  _occupationNewName = "Character Name@World";
-        private RoleId  _occupationNewRole = RoleId.Undefined;
+        private string _occupationNewName = "Character Name@World";
+        private RoleId _occupationNewRole = RoleId.Undefined;
 
         public bool SettingsVisible
         {
@@ -38,36 +38,38 @@ namespace PartyIcons
         {
             this._configuration = configuration;
             _stylesheet = stylesheet;
+            _nameplateExamples = new Dictionary<NameplateMode, TextureWrap>();
         }
 
+        /*
         public void Initialize()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var examplesImageNames = new Dictionary<NameplateMode, string>
-            {
-                { NameplateMode.SmallJobIcon, "PartyIcons.Resources.1.png" },
-                { NameplateMode.BigJobIcon, "PartyIcons.Resources.2.png" },
-                { NameplateMode.BigJobIconAndPartySlot, "PartyIcons.Resources.3.png" },
-                { NameplateMode.RoleLetters, "PartyIcons.Resources.4.png" },
-            };
+             var assembly = Assembly.GetExecutingAssembly();
+             var examplesImageNames = new Dictionary<NameplateMode, string>
+             {
+                 { NameplateMode.SmallJobIcon, "PartyIcons.Resources.1.png" },
+                 { NameplateMode.BigJobIcon, "PartyIcons.Resources.2.png" },
+                 { NameplateMode.BigJobIconAndPartySlot, "PartyIcons.Resources.3.png" },
+                 { NameplateMode.RoleLetters, "PartyIcons.Resources.4.png" },
+             };
 
-            _nameplateExamples = new Dictionary<NameplateMode, TextureWrap>();
+             foreach (var kv in examplesImageNames)
+             {
+                 using var fileStream = assembly.GetManifestResourceStream(kv.Value);
+                 if (fileStream == null)
+                 {
+                     PluginLog.Error($"Failed to get resource stream for {kv.Value}");
+                     continue;
+                 }
 
-            foreach (var kv in examplesImageNames)
-            {
-                using var fileStream = assembly.GetManifestResourceStream(kv.Value);
-                if (fileStream == null)
-                {
-                    PluginLog.Error($"Failed to get resource stream for {kv.Value}");
-                    continue;
-                }
+                 using var memoryStream = new MemoryStream();
+                 fileStream.CopyTo(memoryStream);
 
-                using var memoryStream = new MemoryStream();
-                fileStream.CopyTo(memoryStream);
-
-                _nameplateExamples[kv.Key] = Interface.UiBuilder.LoadImage(memoryStream.ToArray());
-            }
+                 _nameplateExamples.Clear();
+                 if(Interface != null) _nameplateExamples[kv.Key] = Interface.UiBuilder.LoadImage(memoryStream.ToArray());
+             }
         }
+        */
 
         public void Dispose()
         {
@@ -87,7 +89,7 @@ namespace PartyIcons
 
             if (_windowSize == default)
             {
-                _windowSize = new Vector2(1200, 1400);
+                _windowSize = new Vector2(1000, 800);
             }
 
             ImGui.SetNextWindowSize(_windowSize, ImGuiCond.Always);
@@ -131,7 +133,7 @@ namespace PartyIcons
             }
             ImGui.SameLine();
             ImGui.Text("Enable testing mode");
-            ImGuiHelpTooltip("Applies settings to any player, contrary to only the ones that are in the party.");
+            ImGuiHelpTooltip("Applies settings to any player, contrary to only the ones that are in the party");
 
             var chatContentMessage = _configuration.ChatContentMessage;
             if (ImGui.Checkbox("##chatmessage", ref chatContentMessage))
@@ -141,7 +143,7 @@ namespace PartyIcons
             }
             ImGui.SameLine();
             ImGui.Text("Display chat message when entering duty");
-            ImGuiHelpTooltip("Can be used to determine the duty type before fully loading in.");
+            ImGuiHelpTooltip("Can be used to determine the duty type before fully loading in");
 
             var easternNamingConvention = _configuration.EasternNamingConvention;
             if (ImGui.Checkbox("##easteannaming", ref easternNamingConvention))
@@ -151,7 +153,7 @@ namespace PartyIcons
             }
             ImGui.SameLine();
             ImGui.Text("Eastern role naming convention");
-            ImGuiHelpTooltip("Use japanese data center role naming convention (MT ST D1-D4 H1-2).");
+            ImGuiHelpTooltip("Use japanese data center role naming convention (MT ST D1-D4 H1-2)");
 
             var displayRoleInPartyList = _configuration.DisplayRoleInPartyList;
             if (ImGui.Checkbox("##displayrolesinpartylist", ref displayRoleInPartyList))
@@ -161,7 +163,7 @@ namespace PartyIcons
             }
             ImGui.SameLine();
             ImGui.Text("Replace party numbers with role in Party List");
-            ImGuiHelpTooltip("EXPERIMENTAL. Only works when nameplates set to 'Role letters'.", true);
+            ImGuiHelpTooltip("EXPERIMENTAL. Only works when nameplates set to 'Role letters'", true);
         }
 
         private void DrawNameplateSettings()
@@ -174,7 +176,7 @@ namespace PartyIcons
             }
             ImGui.SameLine();
             ImGui.Text("Hide own nameplate");
-            ImGuiHelpTooltip("You can turn your own nameplate on and also turn this\nsetting own to only use nameplate to display own raid position.\nIf you don't want your position displayed with this setting you can simply disable\nyour nameplates in the Character settings.");
+            ImGuiHelpTooltip("You can turn your own nameplate on and also turn this\nsetting own to only use nameplate to display own raid position.\nIf you don't want your position displayed with this setting you can\nsimply disable your nameplates in the Character settings.");
 
             var showPlayerStatus = _configuration.ShowPlayerStatus;
             if (ImGui.Checkbox("##showplayerstatus", ref showPlayerStatus))
@@ -222,58 +224,56 @@ namespace PartyIcons
                 }
                 ImGui.EndCombo();
             }
-            ImGuiHelpTooltip("Affects all presets, except Game Default and Small Job Icon.");
+            ImGuiHelpTooltip("Affects all presets, except Game Default and Small Job Icon");
 
             ImGui.Dummy(new Vector2(0, 25f));
             ImGui.Text("Dungeon:");
-            ImGuiHelpTooltip("Modes used for your party while in dungeon.");
+            ImGuiHelpTooltip("Modes used for your party while in dungeon");
             NameplateModeSection("##np_dungeon", () => _configuration.NameplateDungeon, (mode) => _configuration.NameplateDungeon = mode);
             ImGui.SameLine();
             ChatModeSection("##chat_dungeon", () => _configuration.ChatDungeon, (mode) => _configuration.ChatDungeon = mode);
             ImGui.Dummy(new Vector2(0, 15f));
 
             ImGui.Text("Raid:");
-            ImGuiHelpTooltip("Modes used for your party while in raid.");
+            ImGuiHelpTooltip("Modes used for your party while in raid");
             NameplateModeSection("##np_raid", () => _configuration.NameplateRaid, (mode) => _configuration.NameplateRaid = mode);
             ImGui.SameLine();
             ChatModeSection("##chat_raid", () => _configuration.ChatRaid, (mode) => _configuration.ChatRaid = mode);
             ImGui.Dummy(new Vector2(0, 15f));
 
             ImGui.Text("Alliance Raid party:");
-            ImGuiHelpTooltip("Modes used for your party while in alliance raid.");
+            ImGuiHelpTooltip("Modes used for your party while in alliance raid");
             NameplateModeSection("##np_alliance", () => _configuration.NameplateAllianceRaid, (mode) => _configuration.NameplateAllianceRaid = mode);
             ImGui.SameLine();
             ChatModeSection("##chat_alliance", () => _configuration.ChatAllianceRaid, (mode) => _configuration.ChatAllianceRaid = mode);
             ImGui.Dummy(new Vector2(0, 15f));
 
             ImGui.Text("Overworld party:");
-            ImGuiHelpTooltip("Modes used for your party while not in duty.");
+            ImGuiHelpTooltip("Modes used for your party while not in duty");
             NameplateModeSection("##np_overworld", () => _configuration.NameplateOverworld, (mode) => _configuration.NameplateOverworld = mode);
             ImGui.SameLine();
             ChatModeSection("##chat_overworld", () => _configuration.ChatOverworld, (mode) => _configuration.ChatOverworld = mode);
             ImGui.Dummy(new Vector2(0, 15f));
 
             ImGui.Text("Other player characters:");
-            ImGuiHelpTooltip("Modes used for non-party players.");
+            ImGuiHelpTooltip("Modes used for non-party players");
             NameplateModeSection("##np_others", () => _configuration.NameplateOthers, (mode) => _configuration.NameplateOthers = mode);
             ImGui.SameLine();
             ChatModeSection("##chat_others", () => _configuration.ChatOthers, (mode) => _configuration.ChatOthers = mode);
-
-            ImGui.Dummy(new Vector2(0, 25f));
-            ImGui.TextWrapped("Please note that it usually takes a some time for nameplates to reload, especially for own character nameplate.");
-
             ImGui.Dummy(new Vector2(0, 15f));
-            ImGui.Text("Nameplate examples:");
 
-            foreach (var kv in _nameplateExamples)
-            {
-                CollapsibleExampleImage(kv.Key, kv.Value);
-            }
+            ImGui.Text("Frontline:");
+            ImGuiHelpTooltip("Modes used for your party in Frontline");
+            NameplateModeSection("##np_pvp", () => _configuration.NameplatePvP, (mode) => _configuration.NameplatePvP = mode);
+            ImGui.SameLine();
+            ChatModeSection("##chat_pvp", () => _configuration.ChatPvP, (mode) => _configuration.ChatPvP = mode);
+            ImGui.Dummy(new Vector2(0, 25f));
+            ImGui.TextWrapped("Please note that it usually takes a some time for nameplates to reload, especially for own character nameplate");
         }
 
         private void DrawStaticAssignmentsSettings()
         {
-            ImGui.TextWrapped("Name should include world name, separated by @. Experimental option.");
+            ImGui.TextWrapped("Name should include world name, separated by @. Experimental option");
             ImGui.Dummy(new Vector2(0f, 25f));
 
             foreach (var kv in new Dictionary<string, RoleId>(_configuration.StaticAssignments))
@@ -381,10 +381,10 @@ namespace PartyIcons
             return mode switch
             {
                 ChatMode.GameDefault => "Game Default",
-                ChatMode.Role        => "Role",
-                ChatMode.Job         => "Job abbreviation",
-                ChatMode.OnlyColor   => "Color only",
-                _                    => throw new ArgumentException(),
+                ChatMode.Role => "Role",
+                ChatMode.Job => "Job abbreviation",
+                ChatMode.OnlyColor => "Color only",
+                _ => throw new ArgumentException(),
             };
         }
 
@@ -411,9 +411,10 @@ namespace PartyIcons
         {
             return id switch
             {
-                IconSetId.Framed         => "Framed, role colored",
+                IconSetId.Framed => "Framed, role colored",
                 IconSetId.GlowingColored => "Glowing, role colored",
-                IconSetId.GlowingGold    => "Glowing, gold",
+                IconSetId.GlowingGold => "Glowing, gold",
+                _ => throw new Exception($"unknown IconSetId({id})")
             };
         }
 
@@ -421,12 +422,13 @@ namespace PartyIcons
         {
             return mode switch
             {
-                NameplateMode.Default                => "Game default",
-                NameplateMode.BigJobIcon             => "Big job icon",
-                NameplateMode.SmallJobIcon           => "Small job icon and name",
-                NameplateMode.BigJobIconAndPartySlot => "Big job icon and party number",
-                NameplateMode.RoleLetters                => "Role letters",
-                _                                    => throw new ArgumentException(),
+                NameplateMode.Default => "Game default",
+                NameplateMode.JobIcon => "Job Icon only",
+                NameplateMode.JobIconAndName => "Small Job Icon and Name",
+                NameplateMode.JobIconAndPartySlot => "Job Icon and Party Number",
+                NameplateMode.RoleLetters => "Role Letters",
+                NameplateMode.JobIconAndRoleLettersUncolored => "Big Job Icon + Role Letters, uncolorcoded",
+                _ => throw new Exception($"unknown NameplateMode({mode})"),
             };
         }
     }

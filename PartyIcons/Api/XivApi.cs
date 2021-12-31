@@ -15,23 +15,22 @@ namespace PartyIcons.Api
     {
         public static int ThreadID => System.Threading.Thread.CurrentThread.ManagedThreadId;
 
-        private static Plugin _plugin;
+        private static Plugin? _plugin;
 
-        private readonly SetNamePlateDelegate                                 SetNamePlate;
-        private readonly Framework_GetUIModuleDelegate                        GetUIModule;
-        private readonly GroupManager_IsObjectIDInPartyDelegate               IsObjectIDInParty;
-        private readonly GroupManager_IsObjectIDInAllianceDelegate            IsObjectIDInAlliance;
-        private readonly AtkResNode_SetScaleDelegate                          SetNodeScale;
-        private readonly AtkResNode_SetPositionShortDelegate                  SetNodePosition;
+        private readonly SetNamePlateDelegate SetNamePlate;
+        private readonly Framework_GetUIModuleDelegate GetUIModule;
+        private readonly GroupManager_IsObjectIDInPartyDelegate IsObjectIDInParty;
+        private readonly GroupManager_IsObjectIDInAllianceDelegate IsObjectIDInAlliance;
+        private readonly AtkResNode_SetScaleDelegate SetNodeScale;
+        private readonly AtkResNode_SetPositionShortDelegate SetNodePosition;
         private readonly BattleCharaStore_LookupBattleCharaByObjectIDDelegate LookupBattleCharaByObjectID;
 
+        private static XivApi? _instance;
         public static void Initialize(Plugin plugin, PluginAddressResolver address)
         {
             _plugin ??= plugin;
-            Instance ??= new XivApi(plugin.Interface, address);
+            _instance ??= new XivApi(plugin.Interface, address);
         }
-
-        private static XivApi Instance;
 
         private XivApi(DalamudPluginInterface pluginInterface, PluginAddressResolver address)
         {
@@ -42,15 +41,14 @@ namespace PartyIcons.Api
             SetNodeScale = Marshal.GetDelegateForFunctionPointer<AtkResNode_SetScaleDelegate>(address.AtkResNode_SetScalePtr);
             SetNodePosition = Marshal.GetDelegateForFunctionPointer<AtkResNode_SetPositionShortDelegate>(address.AtkResNode_SetPositionShortPtr);
             LookupBattleCharaByObjectID = Marshal.GetDelegateForFunctionPointer<BattleCharaStore_LookupBattleCharaByObjectIDDelegate>(address.BattleCharaStore_LookupBattleCharaByObjectIDPtr);
-
-            _plugin.ClientState.Logout += OnLogout_ResetRaptureAtkModule;
+            if (_plugin != null) _plugin.ClientState.Logout += OnLogout_ResetRaptureAtkModule;
         }
 
-        public static void DisposeInstance() => Instance.Dispose();
+        public static void DisposeInstance() => _instance?.Dispose();
 
         public void Dispose()
         {
-            _plugin.ClientState.Logout -= OnLogout_ResetRaptureAtkModule;
+            if (_plugin != null) _plugin.ClientState.Logout -= OnLogout_ResetRaptureAtkModule;
         }
 
         #region RaptureAtkModule
@@ -61,10 +59,11 @@ namespace PartyIcons.Api
         {
             get
             {
+                if (_plugin == null || _instance == null) return IntPtr.Zero;
                 if (_RaptureAtkModulePtr == IntPtr.Zero)
                 {
                     var frameworkPtr = _plugin.Framework.Address.BaseAddress;
-                    var uiModulePtr = Instance.GetUIModule(frameworkPtr);
+                    var uiModulePtr = _instance.GetUIModule(frameworkPtr);
 
                     unsafe
                     {
@@ -78,36 +77,34 @@ namespace PartyIcons.Api
             }
         }
 
-        private void OnLogout_ResetRaptureAtkModule(object sender, EventArgs evt) => _RaptureAtkModulePtr = IntPtr.Zero;
+        private void OnLogout_ResetRaptureAtkModule(object? sender, EventArgs evt) => _RaptureAtkModulePtr = IntPtr.Zero;
 
         #endregion
 
-        public static SafeAddonNamePlate GetSafeAddonNamePlate() => new SafeAddonNamePlate(_plugin.Interface);
-
-        public static bool IsLocalPlayer(uint actorID) => _plugin.ClientState.LocalPlayer?.ObjectId == actorID;
-
-        public static bool IsPartyMember(uint actorID) => Instance.IsObjectIDInParty(_plugin.Address.GroupManagerPtr, actorID) == 1;
-
-        public static bool IsAllianceMember(uint actorID) => Instance.IsObjectIDInParty(_plugin.Address.GroupManagerPtr, actorID) == 1;
-
+        public static SafeAddonNamePlate GetSafeAddonNamePlate() => _plugin == null ? throw new Exception("Plugin is not assigned") : new SafeAddonNamePlate(_plugin.Interface);
+        public static bool IsLocalPlayer(uint actorID) => _plugin?.ClientState.LocalPlayer?.ObjectId == actorID;
+        public static bool IsPartyMember(uint actorID) => _plugin != null && _instance?.IsObjectIDInParty(_plugin.Address.GroupManagerPtr, actorID) == 1;
+        public static bool IsAllianceMember(uint actorID) => _plugin != null && _instance?.IsObjectIDInParty(_plugin.Address.GroupManagerPtr, actorID) == 1;
         public static bool IsPlayerCharacter(uint actorID)
         {
-            foreach (var obj in _plugin.ObjectTable)
-            {
-                if (obj == null) continue;
-                if (obj.ObjectId == actorID) return obj.ObjectKind == ObjectKind.Player;
-            }
+            if (_plugin != null)
+                foreach (var obj in _plugin.ObjectTable)
+                {
+                    if (obj == null) continue;
+                    if (obj.ObjectId == actorID) return obj.ObjectKind == ObjectKind.Player;
+                }
 
             return false;
         }
 
         public static uint GetJobId(uint actorID)
         {
-            foreach (var obj in _plugin.ObjectTable)
-            {
-                if (obj == null) continue;
-                if (obj.ObjectId == actorID && obj is PlayerCharacter character) { return character.ClassJob.Id; }
-            }
+            if (_plugin != null)
+                foreach (var obj in _plugin.ObjectTable)
+                {
+                    if (obj == null) continue;
+                    if (obj.ObjectId == actorID && obj is PlayerCharacter character) { return character.ClassJob.Id; }
+                }
             return 0;
         }
 
@@ -115,19 +112,16 @@ namespace PartyIcons.Api
         {
             private readonly DalamudPluginInterface Interface;
 
-            public IntPtr Pointer => _plugin.GameGui.GetAddonByName("NamePlate", 1);
+            public IntPtr Pointer => _plugin == null ? IntPtr.Zero : _plugin.GameGui.GetAddonByName("NamePlate", 1);
 
             public SafeAddonNamePlate(DalamudPluginInterface pluginInterface)
             {
                 Interface = pluginInterface;
             }
 
-            public unsafe SafeNamePlateObject GetNamePlateObject(int index)
+            public unsafe SafeNamePlateObject? GetNamePlateObject(int index)
             {
-                if (Pointer == IntPtr.Zero)
-                {
-                    return null;
-                }
+                if (Pointer == IntPtr.Zero) return null;
 
                 var npObjectArrayPtrPtr = Pointer + Marshal.OffsetOf(typeof(AddonNamePlate), nameof(AddonNamePlate.NamePlateObjectArray)).ToInt32();
                 var npObjectArrayPtr = Marshal.ReadIntPtr(npObjectArrayPtrPtr);
@@ -144,11 +138,11 @@ namespace PartyIcons.Api
 
         public class SafeNamePlateObject
         {
-            public readonly IntPtr                         Pointer;
+            public readonly IntPtr Pointer;
             public readonly AddonNamePlate.NamePlateObject Data;
 
-            private int               _Index;
-            private SafeNamePlateInfo _NamePlateInfo;
+            private int _Index;
+            private SafeNamePlateInfo? _NamePlateInfo;
 
             public SafeNamePlateObject(IntPtr pointer, int index = -1)
             {
@@ -186,7 +180,7 @@ namespace PartyIcons.Api
                 }
             }
 
-            public SafeNamePlateInfo NamePlateInfo
+            public SafeNamePlateInfo? NamePlateInfo
             {
                 get
                 {
@@ -210,10 +204,10 @@ namespace PartyIcons.Api
             #region Getters
 
             public unsafe IntPtr IconImageNodeAddress => Marshal.ReadIntPtr(Pointer + Marshal.OffsetOf(typeof(AddonNamePlate.NamePlateObject), nameof(AddonNamePlate.NamePlateObject.IconImageNode)).ToInt32());
-            public unsafe IntPtr NameNodeAddress      => Marshal.ReadIntPtr(Pointer + Marshal.OffsetOf(typeof(AddonNamePlate.NamePlateObject), nameof(AddonNamePlate.NamePlateObject.NameText)).ToInt32());
+            public unsafe IntPtr NameNodeAddress => Marshal.ReadIntPtr(Pointer + Marshal.OffsetOf(typeof(AddonNamePlate.NamePlateObject), nameof(AddonNamePlate.NamePlateObject.NameText)).ToInt32());
 
             public AtkImageNode IconImageNode => Marshal.PtrToStructure<AtkImageNode>(IconImageNodeAddress);
-            public AtkTextNode  NameTextNode  => Marshal.PtrToStructure<AtkTextNode>(NameNodeAddress);
+            public AtkTextNode NameTextNode => Marshal.PtrToStructure<AtkTextNode>(NameNodeAddress);
 
             #endregion
 
@@ -227,7 +221,7 @@ namespace PartyIcons.Api
             {
                 if (force || IconImageNode.AtkResNode.ScaleX != scale || IconImageNode.AtkResNode.ScaleY != scale)
                 {
-                    Instance.SetNodeScale(IconImageNodeAddress, scale, scale);
+                    _instance?.SetNodeScale(IconImageNodeAddress, scale, scale);
                 }
             }
 
@@ -235,7 +229,7 @@ namespace PartyIcons.Api
             {
                 if (force || NameTextNode.AtkResNode.ScaleX != scale || NameTextNode.AtkResNode.ScaleY != scale)
                 {
-                    Instance.SetNodeScale(NameNodeAddress, scale, scale);
+                    _instance?.SetNodeScale(NameNodeAddress, scale, scale);
                 }
             }
 
@@ -279,7 +273,7 @@ namespace PartyIcons.Api
 
         public class SafeNamePlateInfo
         {
-            public readonly IntPtr                         Pointer;
+            public readonly IntPtr Pointer;
             public readonly RaptureAtkModule.NamePlateInfo Data;
 
             public SafeNamePlateInfo(IntPtr pointer)
@@ -328,7 +322,11 @@ namespace PartyIcons.Api
                 return stringPtr;
             }
 
-            private string GetString(IntPtr stringPtr) => Marshal.PtrToStringUTF8(stringPtr);
+            private string GetString(IntPtr stringPtr)
+            {
+                var val = Marshal.PtrToStringUTF8(stringPtr);
+                return val == null ? "" : val;
+            }
         }
     }
 }

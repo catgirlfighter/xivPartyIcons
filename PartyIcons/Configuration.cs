@@ -10,7 +10,7 @@ namespace PartyIcons
     [Serializable]
     public class Configuration : IPluginConfiguration
     {
-        public event Action OnSave;
+        public event Action? OnSave;
 
         public int  Version { get; set; } = 1;
         public bool ChatContentMessage       = true;
@@ -23,21 +23,23 @@ namespace PartyIcons
         public IconSetId         IconSetId { get; set; } = IconSetId.GlowingColored;
         public NameplateSizeMode SizeMode  { get; set; } = NameplateSizeMode.Medium;
 
-        public NameplateMode NameplateOverworld    { get; set; } = NameplateMode.SmallJobIcon;
-        public NameplateMode NameplateAllianceRaid { get; set; } = NameplateMode.BigJobIcon;
-        public NameplateMode NameplateDungeon      { get; set; } = NameplateMode.BigJobIcon;
+        public NameplateMode NameplateOverworld    { get; set; } = NameplateMode.JobIconAndName;
+        public NameplateMode NameplateAllianceRaid { get; set; } = NameplateMode.JobIcon;
+        public NameplateMode NameplateDungeon      { get; set; } = NameplateMode.JobIcon;
         public NameplateMode NameplateRaid         { get; set; } = NameplateMode.RoleLetters;
-        public NameplateMode NameplateOthers       { get; set; } = NameplateMode.SmallJobIcon;
+        public NameplateMode NameplateOthers       { get; set; } = NameplateMode.JobIconAndName;
+        public NameplateMode NameplatePvP { get; set; } = NameplateMode.JobIconAndRoleLettersUncolored;
 
         public ChatMode ChatOverworld    { get; set; } = ChatMode.Role;
         public ChatMode ChatAllianceRaid { get; set; } = ChatMode.Role;
         public ChatMode ChatDungeon      { get; set; } = ChatMode.Job;
         public ChatMode ChatRaid         { get; set; } = ChatMode.Role;
         public ChatMode ChatOthers       { get; set; } = ChatMode.Job;
+        public ChatMode ChatPvP          { get; set; } = ChatMode.GameDefault;
 
         public Dictionary<string, RoleId> StaticAssignments { get; set; } = new();
 
-        private DalamudPluginInterface _interface;
+        private DalamudPluginInterface? _interface;
 
         public void Initialize(DalamudPluginInterface @interface)
         {
@@ -46,8 +48,11 @@ namespace PartyIcons
 
         public void Save()
         {
-            _interface.SavePluginConfig(this);
-            OnSave?.Invoke();
+            if (_interface != null)
+            {
+                _interface.SavePluginConfig(this);
+                OnSave?.Invoke();
+            }
         }
     }
 }
