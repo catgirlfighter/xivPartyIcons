@@ -67,7 +67,7 @@ namespace PartyIcons
         private readonly RoleTracker _roleTracker;
         private readonly ViewModeSetter _modeSetter;
         private readonly ChatNameUpdater _chatNameUpdater;
-        private readonly PlayerStylesheet _playerStylesheet;
+        //private readonly PlayerStylesheet _playerStylesheet;
 
         public Plugin()
         {
@@ -98,9 +98,9 @@ namespace PartyIcons
             Address = new PluginAddressResolver();
             Address.Setup(SigScanner);
 
-            _playerStylesheet = new PlayerStylesheet(Configuration);
+            //_playerStylesheet = new PlayerStylesheet(Configuration);
 
-            _ui = new PluginUI(Configuration, _playerStylesheet);
+            _ui = new PluginUI(Configuration);
             Interface.Inject(_ui);
 
             Base = new XivCommonBase(Hooks.ContextMenu);
@@ -108,15 +108,15 @@ namespace PartyIcons
 
             SeStringUtils.Initialize();
 
-            _partyHUDView = new PartyListHUDView(GameGui, _playerStylesheet);
+            _partyHUDView = new PartyListHUDView(GameGui, Configuration);
 
             _roleTracker = new RoleTracker(this, Configuration);
             Interface.Inject(_roleTracker);
 
-            _nameplateView = new NameplateView(this, _roleTracker, Configuration, _playerStylesheet, _partyHUDView);
+            _nameplateView = new NameplateView(this, _roleTracker, Configuration, _partyHUDView);
             Interface.Inject(_nameplateView);
 
-            _chatNameUpdater = new ChatNameUpdater(this, _roleTracker, _playerStylesheet);
+            _chatNameUpdater = new ChatNameUpdater(this, _roleTracker, Configuration);
             Interface.Inject(_chatNameUpdater);
 
             _partyListHudUpdater = new PartyListHUDUpdater(this, _partyHUDView, _roleTracker, Configuration);
@@ -125,7 +125,7 @@ namespace PartyIcons
             _nameplateUpdater = new NameplateUpdater(Address, _nameplateView, Base);
             _npcNameplateFixer = new NPCNameplateFixer(_nameplateView);
 
-            _contextMenu = new PlayerContextMenu(Base, _roleTracker, _playerStylesheet);
+            _contextMenu = new PlayerContextMenu(Base, _roleTracker, Configuration);
             Interface.Inject(_contextMenu);
 
             //_ui.Initialize();

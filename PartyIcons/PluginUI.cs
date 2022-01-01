@@ -19,7 +19,7 @@ namespace PartyIcons
         [PluginService] private DalamudPluginInterface? Interface { get; set; }
 
         private readonly Configuration _configuration;
-        private readonly PlayerStylesheet _stylesheet;
+        //private readonly PlayerStylesheet _stylesheet;
 
         private bool _settingsVisible = false;
         private Vector2 _windowSize;
@@ -34,10 +34,10 @@ namespace PartyIcons
 
         private Dictionary<NameplateMode, TextureWrap> _nameplateExamples;
 
-        public PluginUI(Configuration configuration, PlayerStylesheet stylesheet)
+        public PluginUI(Configuration configuration)
         {
             this._configuration = configuration;
-            _stylesheet = stylesheet;
+            //_stylesheet = stylesheet;
             _nameplateExamples = new Dictionary<NameplateMode, TextureWrap>();
         }
 
@@ -287,11 +287,11 @@ namespace PartyIcons
 
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200);
-                if (ImGui.BeginCombo("##role_combo_" + kv.Key, _stylesheet.GetRoleName(_configuration.StaticAssignments[kv.Key])))
+                if (ImGui.BeginCombo("##role_combo_" + kv.Key, PlayerStylesheet.GetRoleName(_configuration.StaticAssignments[kv.Key], _configuration.EasternNamingConvention)))
                 {
                     foreach (var roleId in Enum.GetValues<RoleId>())
                     {
-                        if (ImGui.Selectable(_stylesheet.GetRoleName(roleId) + "##role_combo_option_" + kv.Key + "_" + roleId))
+                        if (ImGui.Selectable(PlayerStylesheet.GetRoleName(roleId, _configuration.EasternNamingConvention) + "##role_combo_option_" + kv.Key + "_" + roleId))
                         {
                             _configuration.StaticAssignments[kv.Key] = roleId;
                             _configuration.Save();
@@ -313,11 +313,11 @@ namespace PartyIcons
 
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo("##new_role_combo", _stylesheet.GetRoleName(_occupationNewRole)))
+            if (ImGui.BeginCombo("##new_role_combo", PlayerStylesheet.GetRoleName(_occupationNewRole, _configuration.EasternNamingConvention)))
             {
                 foreach (var roleId in Enum.GetValues<RoleId>())
                 {
-                    if (ImGui.Selectable(_stylesheet.GetRoleName(roleId) + "##new_role_combo_option_" + "_" + roleId))
+                    if (ImGui.Selectable(PlayerStylesheet.GetRoleName(roleId, _configuration.EasternNamingConvention) + "##new_role_combo_option_" + "_" + roleId))
                     {
                         _occupationNewRole = roleId;
                     }

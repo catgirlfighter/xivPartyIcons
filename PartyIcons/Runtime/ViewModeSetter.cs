@@ -7,19 +7,18 @@ using Dalamud.Logging;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using PartyIcons.View;
-using PartyIcons.PluginServiceResources;
 
 namespace PartyIcons.Runtime
 {
     public class ViewModeSetter
     {
-        private ClientState _clientState { get; set; }
-        private DataManager _dataManager { get; set; }
-        private ChatGui     _chatGui     { get; set; }
+        private readonly ClientState _clientState;
+        private readonly DataManager _dataManager;
+        private readonly ChatGui _chatGui;
 
-        private readonly NameplateView       _nameplateView;
-        private readonly Configuration       _configuration;
-        private readonly ChatNameUpdater     _chatNameUpdater;
+        private readonly NameplateView _nameplateView;
+        private readonly Configuration _configuration;
+        private readonly ChatNameUpdater _chatNameUpdater;
         private readonly PartyListHUDUpdater _partyListHudUpdater;
 
         private ExcelSheet<ContentFinderCondition>? _contentFinderConditionsSheet;

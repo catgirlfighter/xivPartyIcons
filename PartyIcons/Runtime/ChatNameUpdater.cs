@@ -19,25 +19,27 @@ namespace PartyIcons.Runtime
 {
     public sealed class ChatNameUpdater : IDisposable
     {
-        private ClientState _clientState;
-        private PartyList _partyList;
-        private ObjectTable _objectTable;
-        private ChatGui _chatGui;
+        private readonly ClientState _clientState;
+        private readonly PartyList _partyList;
+        private readonly ObjectTable _objectTable;
+        private readonly ChatGui _chatGui;
+        private readonly Configuration _configuration;
 
         private readonly RoleTracker _roleTracker;
-        private readonly PlayerStylesheet _stylesheet;
+        //private readonly PlayerStylesheet _stylesheet;
 
         public ChatMode PartyMode { get; set; }
         public ChatMode OthersMode { get; set; }
 
-        public ChatNameUpdater(Plugin plugin, RoleTracker roleTracker, PlayerStylesheet stylesheet)
+        public ChatNameUpdater(Plugin plugin, RoleTracker roleTracker, Configuration configuration)
         {
             _roleTracker = roleTracker;
-            _stylesheet = stylesheet;
+            //_stylesheet = stylesheet;
             _clientState = plugin.ClientState;
             _partyList = plugin.PartyList;
             _objectTable = plugin.ObjectTable;
             _chatGui = plugin.ChatGui;
+            _configuration = configuration;
         }
 
         public void Enable()
@@ -155,8 +157,8 @@ namespace PartyIcons.Runtime
                 GetAndRemovePartyNumberPrefix(chatType, sender, out _);
 
                 var prefixString = new SeString();
-                prefixString.Append(new UIForegroundPayload(_stylesheet.GetRoleChatColor(roleId)));
-                prefixString.Append(_stylesheet.GetRoleChatPrefix(roleId));
+                prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetRoleChatColor(roleId)));
+                prefixString.Append(PlayerStylesheet.GetRoleChatPrefix(roleId, _configuration.EasternNamingConvention));
                 prefixString.Append(new TextPayload(" "));
 
                 sender.Payloads.InsertRange(0, prefixString.Payloads);
@@ -177,27 +179,27 @@ namespace PartyIcons.Runtime
                 switch (mode)
                 {
                     case ChatMode.Job:
-                        prefixString.Append(new UIForegroundPayload(_stylesheet.GetJobChatColor(senderJob)));
+                        prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetJobChatColor(senderJob)));
                         if (numberPrefix.Length > 0)
                         {
                             prefixString.Append(new TextPayload(numberPrefix));
                         }
-                        prefixString.Append(_stylesheet.GetJobChatPrefix(senderJob).Payloads);
+                        prefixString.Append(PlayerStylesheet.GetJobChatPrefix(senderJob).Payloads);
                         prefixString.Append(new TextPayload(" "));
                         break;
 
                     case ChatMode.Role:
-                        prefixString.Append(new UIForegroundPayload(_stylesheet.GetGenericRoleChatColor(senderJob)));
+                        prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetGenericRoleChatColor(senderJob)));
                         if (numberPrefix.Length > 0)
                         {
                             prefixString.Append(new TextPayload(numberPrefix));
                         }
-                        prefixString.Append(_stylesheet.GetGenericRoleChatPrefix(senderJob).Payloads);
+                        prefixString.Append(PlayerStylesheet.GetGenericRoleChatPrefix(senderJob, _configuration.EasternNamingConvention).Payloads);
                         prefixString.Append(new TextPayload(" "));
                         break;
 
                     case ChatMode.OnlyColor:
-                        prefixString.Append(new UIForegroundPayload(_stylesheet.GetGenericRoleChatColor(senderJob)));
+                        prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetGenericRoleChatColor(senderJob)));
                         if (numberPrefix.Length > 0)
                         {
                             prefixString.Append(new TextPayload(numberPrefix));
@@ -206,7 +208,7 @@ namespace PartyIcons.Runtime
                         break;
 
                     default:
-                        throw new ArgumentException();
+                        throw new ArgumentException($"unknown ChatMode({mode})");
                 }
 
                 sender.Payloads.InsertRange(0, prefixString.Payloads);

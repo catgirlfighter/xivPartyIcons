@@ -21,7 +21,7 @@ namespace PartyIcons.View
     {
 
         private readonly Configuration _configuration;
-        private readonly PlayerStylesheet _stylesheet;
+        //private readonly PlayerStylesheet _stylesheet;
         private readonly RoleTracker _roleTracker;
         private readonly PartyListHUDView _partyListHudView;
         private readonly ObjectTable _objectTable;
@@ -36,11 +36,11 @@ namespace PartyIcons.View
         public NameplateMode OthersMode { get; set; }
 
 
-        public NameplateView(Plugin plugin, RoleTracker roleTracker, Configuration configuration, PlayerStylesheet stylesheet, PartyListHUDView partyListHudView)
+        public NameplateView(Plugin plugin, RoleTracker roleTracker, Configuration configuration, PartyListHUDView partyListHudView)
         {
             _roleTracker = roleTracker;
             _configuration = configuration;
-            _stylesheet = stylesheet;
+            //_stylesheet = stylesheet;
             _partyListHudView = partyListHudView;
             _iconSet = new IconSet();
             _objectTable = plugin.ObjectTable;
@@ -267,7 +267,7 @@ namespace PartyIcons.View
                     if (partySlot != null)
                     {
                         var genericRole = JobExtensions.GetRole((Job)(namePlateInfo == null ? 0 : namePlateInfo.GetJobID()));
-                        var text = SeStringUtils.Color(_stylesheet.GetPartySlotNumber(partySlot.Value, genericRole), _stylesheet.GetRoleColor(genericRole));
+                        var text = SeStringUtils.Color(PlayerStylesheet.GetPartySlotNumber(partySlot.Value, genericRole), PlayerStylesheet.GetRoleColor(genericRole));
                         name = GetStateNametext(_configuration.ShowPlayerStatus ? iconID : -1, _iconPrefix, text);
                         iconID = GetClassIcon(npObject.NamePlateInfo, _configuration.ShowPlayerStatus ? iconID : -1);
                     }
@@ -281,14 +281,14 @@ namespace PartyIcons.View
                 case NameplateMode.RoleLetters:
                     if (hasRole)
                     {
-                        var text = SeStringUtils.Color(_stylesheet.GetRolePlate(roleId), _stylesheet.GetRoleColor(roleId));
-                        name = GetStateNametext(-1, _configuration.ShowPlayerStatus ? (_iconPrefix + " ") : null, text);
+                        var text = SeStringUtils.Color(PlayerStylesheet.GetRolePlate(roleId, _configuration.EasternNamingConvention), PlayerStylesheet.GetRoleColor(roleId));
+                        name = GetStateNametext(-1, _configuration.ShowPlayerStatus ? String.Concat(_iconPrefix," ") : null, text);
                     }
                     else
                     {
                         var genericRole = JobExtensions.GetRole((Job)(namePlateInfo == null ? 0 : namePlateInfo.GetJobID()));
-                        var text = SeStringUtils.Color(_stylesheet.GetRolePlate(genericRole), _stylesheet.GetRoleColor(genericRole));
-                        name = GetStateNametext(-1, _configuration.ShowPlayerStatus ? (_iconPrefix + " ") : null, text);
+                        var text = SeStringUtils.Color(PlayerStylesheet.GetRolePlate(genericRole, _configuration.EasternNamingConvention), PlayerStylesheet.GetRoleColor(genericRole));
+                        name = GetStateNametext(-1, _configuration.ShowPlayerStatus ? String.Concat(_iconPrefix, " ") : null, text);
                     }
 
                     fcName = SeStringUtils.emptyPtr;
@@ -298,12 +298,12 @@ namespace PartyIcons.View
                 case NameplateMode.JobIconAndRoleLettersUncolored:
                     if (hasRole)
                     {
-                        name = GetStateNametext(iconID, _iconPrefix, _stylesheet.GetRolePlate(roleId, false));
+                        name = GetStateNametext(iconID, _iconPrefix, PlayerStylesheet.GetRolePlate(roleId, _configuration.EasternNamingConvention));
                     }
                     else
                     {
                         var genericRole = JobExtensions.GetRole((Job)(namePlateInfo == null ? 0 : namePlateInfo.GetJobID()));
-                        name = GetStateNametext(iconID, _iconPrefix, _stylesheet.GetRolePlate(genericRole));
+                        name = GetStateNametext(iconID, _iconPrefix, PlayerStylesheet.GetRolePlate(genericRole, _configuration.EasternNamingConvention));
                     }
 
                     iconID = GetClassIcon(npObject.NamePlateInfo, _configuration.ShowPlayerStatus ? iconID : -1);
@@ -319,7 +319,7 @@ namespace PartyIcons.View
                 return def;
 
             var genericRole = JobExtensions.GetRole((Job)info.GetJobID());
-            var iconSet = _stylesheet.GetGenericRoleIconset(genericRole);
+            var iconSet = PlayerStylesheet.GetGenericRoleIconset(genericRole, _configuration.IconSetId);
             return _iconSet.GetJobIcon(iconSet, info.GetJobID());
         }
 
@@ -327,14 +327,6 @@ namespace PartyIcons.View
         {
             return statusIcon == -1 || _ignorableStates.Contains(statusIcon);
         }
-
-        //private int GetClassRoleColoredIcon(XivApi.SafeNamePlateInfo info, RoleId roleId, int def = -1)
-        //{
-        //    if (!IsIgnorableStatus(def))
-        //        return def;
-        //
-        //    return _iconSet.GetJobIcon(_stylesheet.GetRoleIconset(roleId), info.GetJobID());
-        //}
 
         private SeString GetStateNametextS(int iconId, string? prefix = _iconPrefix, SeString? append = null)
         {
@@ -352,7 +344,7 @@ namespace PartyIcons.View
                 _ => null
             };
 
-            return append == null ? val ?? SeString.Empty : val == null ? prefix == null ? append : SeStringUtils.Text(_iconPrefix).Append(append) : val.Append(append);
+            return append == null ? val ?? SeString.Empty : val == null ? prefix == null ? append : SeStringUtils.Text(prefix).Append(append) : val.Append(append);
         }
 
         private IntPtr GetStateNametext(int iconId, string? prefix = _iconPrefix, SeString? append = null)
@@ -364,7 +356,6 @@ namespace PartyIcons.View
         {
             var namePlateInfo = npObject.NamePlateInfo;
             var uid = namePlateInfo == null ? 0 : namePlateInfo.Data.ObjectID.ObjectID;
-            //var mode = OthersMode;
             if (_configuration.TestingMode || namePlateInfo != null && namePlateInfo.IsPartyMember() || uid == _clientState.LocalPlayer?.ObjectId)
             {
                 return PartyMode;

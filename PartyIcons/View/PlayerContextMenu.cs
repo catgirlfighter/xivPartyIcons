@@ -12,13 +12,15 @@ namespace PartyIcons.View
     {
         private readonly XivCommonBase _base;
         private readonly RoleTracker _roleTracker;
-        private readonly PlayerStylesheet _stylesheet;
+        //private readonly PlayerStylesheet _stylesheet;
+        private readonly Configuration _configuration;
 
-        public PlayerContextMenu(XivCommonBase @base, RoleTracker roleTracker, PlayerStylesheet stylesheet)
+        public PlayerContextMenu(XivCommonBase @base, RoleTracker roleTracker, Configuration configuration)
         {
             _base = @base;
             _roleTracker = roleTracker;
-            _stylesheet = stylesheet;
+            //_stylesheet = stylesheet;
+            _configuration = configuration;
         }
 
         public void Enable()
@@ -47,14 +49,14 @@ namespace PartyIcons.View
 
             if (_roleTracker.TryGetSuggestedRole(args.Text?.TextValue, args.ObjectWorld, out var role))
             {
-                var roleName = _stylesheet.GetRoleName(role);
+                var roleName = PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention);
                 args.Items.Add(new NormalContextMenuItem($"Assign to {roleName} (suggested)", (args) => OnAssignRole(args, role)));
             }
 
             if (_roleTracker.TryGetAssignedRole(args.Text?.TextValue, args.ObjectWorld, out var currentRole))
             {
                 var swappedRole = RoleIdUtils.Counterpart(currentRole);
-                var swappedRoleName = _stylesheet.GetRoleName(swappedRole);
+                var swappedRoleName = PlayerStylesheet.GetRoleName(swappedRole, _configuration.EasternNamingConvention);
                 args.Items.Add(new NormalContextMenuItem($"Party role swap to {swappedRoleName}", (args) => OnAssignRole(args, swappedRole)));
             }
 
@@ -76,7 +78,7 @@ namespace PartyIcons.View
                     continue;
                 }
 
-                args.Items.Add(new NormalContextMenuItem(_stylesheet.GetRoleName(role), (args) => OnAssignRole(args, role)));
+                args.Items.Add(new NormalContextMenuItem(PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention), (args) => OnAssignRole(args, role)));
             }
 
             args.Items.Add(new NormalContextMenuItem("Return", (args) => { }));

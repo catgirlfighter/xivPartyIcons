@@ -11,13 +11,15 @@ namespace PartyIcons.Utils
 {
     public unsafe class PartyListHUDView : IDisposable
     {
-        private readonly PlayerStylesheet _stylesheet;
+        //private readonly PlayerStylesheet _stylesheet;
+        private readonly Configuration _configuration;
         private readonly GameGui _gameGui;
 
-        public PartyListHUDView(GameGui gameGui, PlayerStylesheet stylesheet)
+        public PartyListHUDView(GameGui gameGui, Configuration configuration)
         {
             _gameGui = gameGui;
-            _stylesheet = stylesheet;
+            //_stylesheet = stylesheet;
+            _configuration = configuration;
         }
 
         public void Dispose()
@@ -42,7 +44,7 @@ namespace PartyIcons.Utils
 
                 var numberNode = nameNode->AtkResNode.PrevSiblingNode->GetAsAtkTextNode();
                 numberNode->AtkResNode.SetPositionShort(0, 0);
-                numberNode->SetText(_stylesheet.BoxedCharacterString((i + 1).ToString()));
+                numberNode->SetText(PlayerStylesheet.BoxedCharacterString((i + 1).ToString()));
             }
         }
 
@@ -91,7 +93,7 @@ namespace PartyIcons.Utils
             var numberNode = nameNode->AtkResNode.PrevSiblingNode->GetAsAtkTextNode();
             numberNode->AtkResNode.SetPositionShort(6, 0);
 
-            var seString = _stylesheet.GetRolePlate(roleId);
+            var seString = PlayerStylesheet.GetRolePlate(roleId, _configuration.EasternNamingConvention);
             var buf = seString.Encode();
 
             fixed (byte* ptr = buf)

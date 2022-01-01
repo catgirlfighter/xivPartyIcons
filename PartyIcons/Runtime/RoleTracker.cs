@@ -12,7 +12,6 @@ using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.IoC;
 using Dalamud.Logging;
 using PartyIcons.Entities;
 
@@ -44,6 +43,7 @@ namespace PartyIcons.Runtime
         private readonly Dictionary<string, RoleId> _assignedRoles = new();
         private readonly Dictionary<string, RoleId> _suggestedRoles = new();
         private readonly HashSet<RoleId> _unassignedRoles = new();
+        private bool _prevEastern = false;
 
         public RoleTracker(Plugin plugin, Configuration configuration)
         {
@@ -66,7 +66,7 @@ namespace PartyIcons.Runtime
             _occupationMessages.Add((RoleId.OT, " st "));
             _suggestionRegexes.Add((RoleId.OT, new Regex("\\Wst\\W")));
 
-            for (var i = 1; i < 5; i++)
+            for (var i = 1; i < RoleIdUtils.ROLE_COUNT + 1; i++)
             {
                 var roleId = RoleId.M1 + i - 1;
                 _occupationMessages.Add((roleId, $" d{i} "));
@@ -187,7 +187,7 @@ namespace PartyIcons.Runtime
                     var playerDescription = $"{member.Name}@{member.World.GameData.Name}";
                     if (kv.Key.Equals(playerDescription))
                     {
-                        var applicableRoles = GetApplicableRolesForGenericRole(JobRoleExtensions.RoleFromByte(member.ClassJob.GameData.Role));
+                        var applicableRoles = GetApplicableRolesForGenericRole(JobRoleExtensions.RoleFromByte(member.ClassJob.GameData.Role), _configuration.EasternNamingConvention);
                         if (applicableRoles.Contains(kv.Value))
                         {
                             PluginLog.Debug($"{playerId} == {kv.Value} as per static assignments {playerDescription}");
@@ -256,6 +256,12 @@ namespace PartyIcons.Runtime
                 return;
             }
 
+            if (_prevEastern != _configuration.EasternNamingConvention)
+            {
+                _previousStateHash = default;
+                _prevEastern = _configuration.EasternNamingConvention;
+            }
+
             var partyHash = 17;
             foreach (var member in _partyList)
             {
@@ -274,41 +280,42 @@ namespace PartyIcons.Runtime
             _previousStateHash = partyHash;
         }
 
-        private string PlayerId(string name, uint worldId)
+        private static string PlayerId(string name, uint worldId)
         {
             return $"{name}@{worldId}";
         }
 
-        private string PlayerId(PartyMember member)
+        private static string PlayerId(PartyMember member)
         {
             return $"{member.Name.TextValue}@{member.World.Id}";
         }
 
         private RoleId FindUnassignedRoleForGenericRole(GenericRole role)
         {
-            var applicableRoles = GetApplicableRolesForGenericRole(role);
+            var applicableRoles = GetApplicableRolesForGenericRole(role, _configuration.EasternNamingConvention);
             return applicableRoles.FirstOrDefault(r => _unassignedRoles.Contains(r));
         }
 
-        private IEnumerable<RoleId> GetApplicableRolesForGenericRole(GenericRole role)
+        private static IEnumerable<RoleId> GetApplicableRolesForGenericRole(GenericRole role, bool eastern)
         {
-            switch (role)
-            {
-                case GenericRole.Tank:
-                    return new[] { RoleId.MT, RoleId.OT };
-
-                case GenericRole.Melee:
-                    return new[] { RoleId.M1, RoleId.M2, RoleId.R1, RoleId.R2 };
-
-                case GenericRole.Ranged:
-                    return new[] { RoleId.R1, RoleId.R2, RoleId.M1, RoleId.M2 };
-
-                case GenericRole.Healer:
-                    return new[] { RoleId.H1, RoleId.H2 };
-
-                default:
-                    return new[] { RoleId.Undefined };
-            }
+            if (eastern)
+                return role switch
+                {
+                    GenericRole.Tank => new[] { RoleId.MT, RoleId.OT, RoleId.T3, RoleId.T4, RoleId.T5, RoleId.T6, RoleId.T7, RoleId.T8 },
+                    GenericRole.Healer => new[] { RoleId.H1, RoleId.H2, RoleId.H3, RoleId.H4, RoleId.H5, RoleId.H6, RoleId.H7, RoleId.H8 },
+                    GenericRole.Melee or GenericRole.Ranged => new[] { RoleId.M1, RoleId.M2, RoleId.M3, RoleId.M4, RoleId.M5, RoleId.M6, RoleId.M7, RoleId.M8,
+                            RoleId.R1, RoleId.R2, RoleId.R3, RoleId.R4, RoleId.R5, RoleId.R6, RoleId.R7, RoleId.R8 },
+                    _ => new[] { RoleId.Undefined },
+                };
+            else
+                return role switch
+                {
+                    GenericRole.Tank => new[] { RoleId.MT, RoleId.OT, RoleId.T3, RoleId.T4, RoleId.T5, RoleId.T6, RoleId.T7, RoleId.T8 },
+                    GenericRole.Healer => new[] { RoleId.H1, RoleId.H2, RoleId.H3, RoleId.H4, RoleId.H5, RoleId.H6, RoleId.H7, RoleId.H8 },
+                    GenericRole.Melee => new[] { RoleId.M1, RoleId.M2, RoleId.M3, RoleId.M4, RoleId.M5, RoleId.M6, RoleId.M7, RoleId.M8 },
+                    GenericRole.Ranged => new[] { RoleId.R1, RoleId.R2, RoleId.R3, RoleId.R4, RoleId.R5, RoleId.R6, RoleId.R7, RoleId.R8 },
+                    _ => new[] { RoleId.Undefined },
+                };
         }
 
         private void OnChatMessage(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
