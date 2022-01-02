@@ -135,15 +135,6 @@ namespace PartyIcons.Stylesheet
                 if (GetRoleInd(roleId) > RoleIdUtils.ROLE_HEALER) return SeStringUtils.Text(BoxedCharacterString("D" + ((int)roleId - (int)RoleId.H8).ToString()));
             }
             return SeStringUtils.Text(BoxedCharacterString(roleId.ToString()));
-            //return roleId switch
-            //{
-            //    RoleId.MT => SeStringUtils.Text(BoxedCharacterString("MT")),
-            //    RoleId.OT => SeStringUtils.Text(BoxedCharacterString(_configuration.EasternNamingConvention ? "ST" : "OT")),
-            //    RoleId.M1 or RoleId.M2 => SeStringUtils.Text(BoxedCharacterString(_configuration.EasternNamingConvention ? "D" : "M") + GetRolePlateNumber(roleId)),
-            //    RoleId.R1 or RoleId.R2 => SeStringUtils.Text(BoxedCharacterString(_configuration.EasternNamingConvention ? "D" : "R") + GetRolePlateNumber(roleId)),
-            //    RoleId.H1 or RoleId.H2 => SeStringUtils.Text(BoxedCharacterString("H") + GetRolePlateNumber(roleId)),
-            //    _ => string.Empty,
-            //};
         }
 
         public static SeString GetRolePlateNumber(RoleId roleId, bool eastern)
@@ -159,39 +150,11 @@ namespace PartyIcons.Stylesheet
                 else
                     roleNum = ((int)roleId - 1) % RoleIdUtils.ROLE_COUNT + 1;
                 return SeStringUtils.Text(BoxedCharacterString(roleNum.ToString()));
-                /*    
-                return roleId switch
-                {
-                    RoleId.MT => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.OT => SeStringUtils.Text(BoxedCharacterString("2")),
-                    RoleId.H1 => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.H2 => SeStringUtils.Text(BoxedCharacterString("2")),
-                    RoleId.M1 => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.M2 => SeStringUtils.Text(BoxedCharacterString("2")),
-                    RoleId.R1 => SeStringUtils.Text(BoxedCharacterString("3")),
-                    RoleId.R2 => SeStringUtils.Text(BoxedCharacterString("4")),
-                    _ => SeStringUtils.Text("")
-                };
-                */
             }
             else
             {
                 int roleNum = ((int)roleId - 1) % RoleIdUtils.ROLE_COUNT + 1;
                 return SeStringUtils.Text(BoxedCharacterString(roleNum.ToString()));
-                /*
-                return roleId switch
-                {
-                    RoleId.MT => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.OT => SeStringUtils.Text(BoxedCharacterString("2")),
-                    RoleId.H1 => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.H2 => SeStringUtils.Text(BoxedCharacterString("2")),
-                    RoleId.M1 => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.M2 => SeStringUtils.Text(BoxedCharacterString("2")),
-                    RoleId.R1 => SeStringUtils.Text(BoxedCharacterString("1")),
-                    RoleId.R2 => SeStringUtils.Text(BoxedCharacterString("2")),
-                    _ => SeStringUtils.Text("")
-                };
-                */
             }
         }
 

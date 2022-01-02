@@ -40,6 +40,7 @@ namespace PartyIcons.View
 
         private void OnOpenContextMenu(ContextMenuOpenArgs args)
         {
+            return;
             if (!IsMenuValid(args))
             {
                 return;

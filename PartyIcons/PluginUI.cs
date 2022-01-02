@@ -19,7 +19,6 @@ namespace PartyIcons
         [PluginService] private DalamudPluginInterface? Interface { get; set; }
 
         private readonly Configuration _configuration;
-        //private readonly PlayerStylesheet _stylesheet;
 
         private bool _settingsVisible = false;
         private Vector2 _windowSize;
@@ -37,39 +36,8 @@ namespace PartyIcons
         public PluginUI(Configuration configuration)
         {
             this._configuration = configuration;
-            //_stylesheet = stylesheet;
             _nameplateExamples = new Dictionary<NameplateMode, TextureWrap>();
         }
-
-        /*
-        public void Initialize()
-        {
-             var assembly = Assembly.GetExecutingAssembly();
-             var examplesImageNames = new Dictionary<NameplateMode, string>
-             {
-                 { NameplateMode.SmallJobIcon, "PartyIcons.Resources.1.png" },
-                 { NameplateMode.BigJobIcon, "PartyIcons.Resources.2.png" },
-                 { NameplateMode.BigJobIconAndPartySlot, "PartyIcons.Resources.3.png" },
-                 { NameplateMode.RoleLetters, "PartyIcons.Resources.4.png" },
-             };
-
-             foreach (var kv in examplesImageNames)
-             {
-                 using var fileStream = assembly.GetManifestResourceStream(kv.Value);
-                 if (fileStream == null)
-                 {
-                     PluginLog.Error($"Failed to get resource stream for {kv.Value}");
-                     continue;
-                 }
-
-                 using var memoryStream = new MemoryStream();
-                 fileStream.CopyTo(memoryStream);
-
-                 _nameplateExamples.Clear();
-                 if(Interface != null) _nameplateExamples[kv.Key] = Interface.UiBuilder.LoadImage(memoryStream.ToArray());
-             }
-        }
-        */
 
         public void Dispose()
         {
@@ -186,13 +154,13 @@ namespace PartyIcons
             }
 
             ImGui.SameLine();
-            ImGui.Text("Show player status");
+            ImGui.Text("Show Player Status");
             ImGuiHelpTooltip("Display player status, or at least if it's a new adventurer or a mentor if possible");
 
             ImGui.Dummy(new Vector2(0f, 25f));
 
             var iconSetId = _configuration.IconSetId;
-            ImGui.Text("Icon set:");
+            ImGui.Text("Icon Set:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(300);
             if (ImGui.BeginCombo("##icon_set", IconSetIdToString(iconSetId)))
@@ -209,7 +177,7 @@ namespace PartyIcons
             }
 
             var iconSizeMode = _configuration.SizeMode;
-            ImGui.Text("Nameplate size:");
+            ImGui.Text("Nameplate Size:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(300);
             if (ImGui.BeginCombo("##icon_size", iconSizeMode.ToString()))

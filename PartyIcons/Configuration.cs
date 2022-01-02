@@ -19,9 +19,9 @@ namespace PartyIcons
         public bool EasternNamingConvention  = false;
         public bool DisplayRoleInPartyList   = false;
         public bool ShowPlayerStatus = true;
-        
+
         public IconSetId         IconSetId { get; set; } = IconSetId.GlowingColored;
-        public NameplateSizeMode SizeMode  { get; set; } = NameplateSizeMode.Medium;
+        public NameplateSizeMode SizeMode  { get; set; } = NameplateSizeMode.Large;
 
         public NameplateMode NameplateOverworld    { get; set; } = NameplateMode.JobIconAndName;
         public NameplateMode NameplateAllianceRaid { get; set; } = NameplateMode.JobIcon;

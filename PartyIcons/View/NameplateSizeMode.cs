@@ -2,9 +2,11 @@
 {
     public enum NameplateSizeMode
     {
-        Smaller,
-        Medium,
-        Bigger,
-        Tiny,
+        Basic,
+        Large,
+        Larger,
+        Custom
     }
+
+
 }

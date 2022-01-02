@@ -65,7 +65,6 @@ namespace PartyIcons.Runtime
             var content = _contentFinderConditionsSheet?.FirstOrDefault(t => t.TerritoryType.Row == _clientState.TerritoryType);
             if (content == null)
             {
-                PluginLog.Information($"Content null {_clientState.TerritoryType}");
                 _nameplateView.PartyMode = _configuration.NameplateOverworld;
                 _chatNameUpdater.PartyMode = _configuration.ChatOverworld;
                 return;
@@ -73,7 +72,7 @@ namespace PartyIcons.Runtime
 
             if (_configuration.ChatContentMessage)
             {
-                _chatGui.Print($"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}");
+                _chatGui.Print($"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}.");
             }
 
             var memberType = content.ContentMemberType.Row;
