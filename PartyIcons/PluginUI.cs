@@ -113,6 +113,16 @@ namespace PartyIcons
             ImGui.Text("Display chat message when entering duty");
             ImGuiHelpTooltip("Can be used to determine the duty type before fully loading in");
 
+            var avatarAnnouncementsInChat = _configuration.AvatarAnnouncementsInChat;
+            if (ImGui.Checkbox("##avatarsinchat", ref avatarAnnouncementsInChat))
+            {
+                _configuration.AvatarAnnouncementsInChat = avatarAnnouncementsInChat;
+                _configuration.Save();
+            }
+            ImGui.SameLine();
+            ImGui.Text("Show Avatar announcements in party chat");
+            ImGuiHelpTooltip("Announcements from avatars in trust dungeons will be shown in party chat");
+
             var easternNamingConvention = _configuration.EasternNamingConvention;
             if (ImGui.Checkbox("##easteannaming", ref easternNamingConvention))
             {
@@ -395,7 +405,7 @@ namespace PartyIcons
                 NameplateMode.JobIconAndName => "Small Job Icon and Name",
                 NameplateMode.JobIconAndPartySlot => "Job Icon and Party Number",
                 NameplateMode.RoleLetters => "Role Letters",
-                NameplateMode.JobIconAndRoleLettersUncolored => "Big Job Icon + Role Letters, uncolorcoded",
+                NameplateMode.JobIconAndRoleLettersUncolored => "Job Icon + Role Letters, uncolorcoded",
                 _ => throw new Exception($"unknown NameplateMode({mode})"),
             };
         }

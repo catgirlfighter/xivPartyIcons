@@ -4,8 +4,7 @@
     {
         Basic,
         Large,
-        Larger,
-        Custom
+        Larger
     }
 
 

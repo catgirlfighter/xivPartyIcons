@@ -113,29 +113,43 @@ namespace PartyIcons.Runtime
                 return _assignedRoles.TryGetValue(PlayerId(name, worldId), out roleId);
         }
 
+        public HashSet<RoleId> GetAssignedRoleSet()
+        {
+            HashSet<RoleId> result = new();
+            foreach (var val in _assignedRoles)
+                result.Add(val.Value);
+            return result;
+        }
+
+        public HashSet<RoleId> GetFirstUnassignedRoleSet()
+        {
+            HashSet<RoleId> result = new();
+            foreach (var role in Enum.GetValues<GenericRole>())
+            {
+                var val = FindUnassignedRoleForGenericRole(role);
+                if (val != RoleId.Undefined)
+                    result.Add(val);
+            }
+            return result;
+        }
+
         public void OccupyRole(string? name, uint world, RoleId roleId)
         {
-            if (name == null)
+            if (name == null || name == "")
                 return;
-
-            foreach (var kv in _occupiedRoles.ToArray())
-            {
-                if (kv.Value == roleId)
-                {
-                    _occupiedRoles.Remove(kv.Key);
-                }
-            }
+ 
+            var val = _occupiedRoles.FirstOrDefault(x => x.Value == roleId);
+            if (val.Key != null) _occupiedRoles.Remove(val.Key);
 
             _occupiedRoles[PlayerId(name, world)] = roleId;
             OnRoleOccupied?.Invoke(name, roleId);
-            _toastGui.ShowQuest($"{name} occupied {roleId}", new QuestToastOptions { DisplayCheckmark = true });
+            _toastGui.ShowNormal($"{name} occupation assigned to {roleId}");
         }
 
         public void SuggestRole(string name, uint world, RoleId roleId)
         {
             _suggestedRoles[PlayerId(name, world)] = roleId;
             OnRoleSuggested?.Invoke(name, roleId);
-            // ToastGui.ShowQuest($"{roleId} is now suggested for {name}");
         }
 
         public void ResetOccupations()

@@ -132,7 +132,11 @@ namespace PartyIcons.Utils
             return result.ToString();
         }
 
-        private AddonPartyList.PartyListMemberStruct? GetPartyMemberStruct(uint idx)
+        public AddonPartyList.PartyListMemberStruct? GetPartyMemberStruct(uint idx)
+        {
+            return GetPartyMemberStruct(_gameGui, idx);
+        }
+        public static AddonPartyList.PartyListMemberStruct? GetPartyMemberStruct(GameGui _gameGui, uint idx)
         {
             var partyListAddon = (AddonPartyList*)_gameGui.GetAddonByName("_PartyList", 1);
             if (partyListAddon == null)
@@ -154,6 +158,5 @@ namespace PartyIcons.Utils
                 _ => throw new ArgumentException($"Invalid index: {idx}")
             };
         }
-
     }
 }

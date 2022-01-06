@@ -98,8 +98,6 @@ namespace PartyIcons
             Address = new PluginAddressResolver();
             Address.Setup(SigScanner);
 
-            //_playerStylesheet = new PlayerStylesheet(Configuration);
-
             _ui = new PluginUI(Configuration);
             Interface.Inject(_ui);
 
@@ -202,6 +200,7 @@ namespace PartyIcons
             }
             else if (arguments == "dbg party")
             {
+                ChatGui.Print($"Party Size = {PartyList.Length}");
                 foreach (var member in PartyList)
                 {
                     var index = _partyHUDView.GetPartySlotIndex(member.ObjectId);

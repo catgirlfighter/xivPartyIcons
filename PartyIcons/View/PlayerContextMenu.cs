@@ -12,14 +12,12 @@ namespace PartyIcons.View
     {
         private readonly XivCommonBase _base;
         private readonly RoleTracker _roleTracker;
-        //private readonly PlayerStylesheet _stylesheet;
         private readonly Configuration _configuration;
 
         public PlayerContextMenu(XivCommonBase @base, RoleTracker roleTracker, Configuration configuration)
         {
             _base = @base;
             _roleTracker = roleTracker;
-            //_stylesheet = stylesheet;
             _configuration = configuration;
         }
 
@@ -40,20 +38,17 @@ namespace PartyIcons.View
 
         private void OnOpenContextMenu(ContextMenuOpenArgs args)
         {
-            return;
             if (!IsMenuValid(args))
             {
                 return;
             }
-
-            PluginLog.Debug($"Opening submenu for {args.ObjectId}");
-
+            
             if (_roleTracker.TryGetSuggestedRole(args.Text?.TextValue, args.ObjectWorld, out var role))
             {
                 var roleName = PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention);
                 args.Items.Add(new NormalContextMenuItem($"Assign to {roleName} (suggested)", (args) => OnAssignRole(args, role)));
             }
-
+            
             if (_roleTracker.TryGetAssignedRole(args.Text?.TextValue, args.ObjectWorld, out var currentRole))
             {
                 var swappedRole = RoleIdUtils.Counterpart(currentRole);
@@ -61,30 +56,25 @@ namespace PartyIcons.View
                 args.Items.Add(new NormalContextMenuItem($"Party role swap to {swappedRoleName}", (args) => OnAssignRole(args, swappedRole)));
             }
 
-            args.Items.Add(new NormalContextSubMenuItem("Party role assign ", OnAssignSubMenuOpen));
+            args.Items.Add(new NormalContextSubMenuItem("Assign Party Role", args =>
+            {
+                foreach (var role in _roleTracker.GetAssignedRoleSet())
+                {
+                    args.Items.Add(new NormalContextMenuItem(">" + PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention), (args) => OnAssignRole(args, role)));
+                }
+                foreach (var role in _roleTracker.GetFirstUnassignedRoleSet())
+                {
+                    args.Items.Add(new NormalContextMenuItem(PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention), (args) => OnAssignRole(args, role)));
+                }
+                args.Items.Add(new NormalContextMenuItem("Return", (args) => { }));
+            }));
         }
-
+        
         private void OnAssignRole(ContextMenuItemSelectedArgs args, RoleId roleId)
         {
             _roleTracker.OccupyRole(args.Text?.TextValue, args.ObjectWorld, roleId);
             _roleTracker.CalculateUnassignedPartyRoles();
-        }
-
-        private void OnAssignSubMenuOpen(ContextMenuOpenArgs args)
-        {
-            foreach (var role in Enum.GetValues<RoleId>())
-            {
-                if (role == RoleId.Undefined)
-                {
-                    continue;
-                }
-
-                args.Items.Add(new NormalContextMenuItem(PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention), (args) => OnAssignRole(args, role)));
-            }
-
-            args.Items.Add(new NormalContextMenuItem("Return", (args) => { }));
-        }
-
+        }     
         private bool IsMenuValid(BaseContextMenuArgs args)
         {
             switch (args.ParentAddonName)

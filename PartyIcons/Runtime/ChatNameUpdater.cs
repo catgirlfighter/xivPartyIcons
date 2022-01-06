@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Linq;
+using Dalamud.Game.Gui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Party;
-using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.IoC;
-using Dalamud.Logging;
 using Lumina.Excel.GeneratedSheets;
 using PartyIcons.Stylesheet;
 using PartyIcons.View;
-using PartyIcons.Utils;
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace PartyIcons.Runtime
 {
@@ -24,9 +22,8 @@ namespace PartyIcons.Runtime
         private readonly ObjectTable _objectTable;
         private readonly ChatGui _chatGui;
         private readonly Configuration _configuration;
-
         private readonly RoleTracker _roleTracker;
-        //private readonly PlayerStylesheet _stylesheet;
+        private readonly GameGui _gameGui;
 
         public ChatMode PartyMode { get; set; }
         public ChatMode OthersMode { get; set; }
@@ -34,12 +31,12 @@ namespace PartyIcons.Runtime
         public ChatNameUpdater(Plugin plugin, RoleTracker roleTracker, Configuration configuration)
         {
             _roleTracker = roleTracker;
-            //_stylesheet = stylesheet;
+            _configuration = configuration;
             _clientState = plugin.ClientState;
             _partyList = plugin.PartyList;
             _objectTable = plugin.ObjectTable;
             _chatGui = plugin.ChatGui;
-            _configuration = configuration;
+            _gameGui = plugin.GameGui;
         }
 
         public void Enable()
@@ -49,10 +46,39 @@ namespace PartyIcons.Runtime
 
         private void OnChatMessage(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
         {
+            if (_configuration.AvatarAnnouncementsInChat)
+            {
+                if (_configuration.AvatarAnnouncementsInChat && type == (XivChatType)68)
+                    if (TryTrustMessage(sender, message))
+                    {
+                        ishandled = true;
+                        return;
+                    }
+            }
+
             if (type == XivChatType.Say || type == XivChatType.Party || type == XivChatType.Alliance || type == XivChatType.Shout || type == XivChatType.Yell)
             {
                 Parse(type, ref sender);
             }
+        }
+
+        private unsafe bool TryTrustMessage(SeString sender, SeString message)
+        {
+            var partyListAddon = (AddonPartyList*)_gameGui.GetAddonByName("_PartyList", 1);
+            var list = (PartyIconsEx.Api.TrustMembers*)&(partyListAddon->TrustMember);
+            
+            for (int i = 0; i < partyListAddon->TrustCount; i++)
+            {
+                var member = (*list)[i];
+                string memberName = member.Name->NodeText.ToString();
+                if (memberName.EndsWith(sender.ToString()))
+                {
+                    _chatGui.PrintChat(new XivChatEntry { Type = XivChatType.Party, Name = sender, Message = message });
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void Disable()

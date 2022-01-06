@@ -72,7 +72,7 @@ namespace PartyIcons.View
                     switch (_configuration.SizeMode)
                     {
                         case NameplateSizeMode.Basic:
-                        case NameplateSizeMode.Custom:
+                        //case NameplateSizeMode.Custom:
                             iconPrefix = "   ";
                             statIconPrefix = "   ";
                             break;
@@ -135,7 +135,7 @@ namespace PartyIcons.View
                     switch (_configuration.SizeMode)
                     {
                         case NameplateSizeMode.Basic:
-                        case NameplateSizeMode.Custom:
+                        //case NameplateSizeMode.Custom:
                             coords += adj ? _iconSetOffset[(int)_configuration.IconSetId] : new Vector2(0, 0);
                             iconScale *= 1f;
                             nameScale = 0.5f;

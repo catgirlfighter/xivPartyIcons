@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Dalamud.Data;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.Text;
 using Dalamud.Game.Gui;
 using Dalamud.IoC;
 using Dalamud.Logging;
@@ -72,15 +73,15 @@ namespace PartyIcons.Runtime
 
             if (_configuration.ChatContentMessage)
             {
-                _chatGui.Print($"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}.");
+                _chatGui.PrintChat(new XivChatEntry { Message = $"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}.", Type = XivChatType.Echo });
             }
 
             var memberType = content.ContentMemberType.Row;
-            if (content.RowId == 16 || content.RowId == 15)
-            {
-                // Praetorium and Castrum Meridianum
-                memberType = 2;
-            }
+            //if (content.RowId == 16 || content.RowId == 15)
+            //{
+            //    // Praetorium and Castrum Meridianum
+            //    memberType = 2;
+            //}
 
             PluginLog.Debug($"Territory changed {content.Name} (id {content.RowId} type {content.ContentType.Row}, terr {_clientState.TerritoryType}, memtype {content.ContentMemberType.Row}, overriden {memberType})");
 

@@ -12,30 +12,32 @@ namespace PartyIcons
     {
         public event Action? OnSave;
 
-        public int  Version { get; set; } = 1;
-        public bool ChatContentMessage       = true;
+        public int Version { get; set; } = 1;
+        public bool ChatContentMessage = true;
         public bool HideLocalPlayerNameplate = true;
-        public bool TestingMode              = true;
-        public bool EasternNamingConvention  = false;
-        public bool DisplayRoleInPartyList   = false;
+        public bool TestingMode = true;
+        public bool EasternNamingConvention = false;
+        public bool DisplayRoleInPartyList = false;
         public bool ShowPlayerStatus = true;
+        public bool AvatarAnnouncementsInChat = false;
 
-        public IconSetId         IconSetId { get; set; } = IconSetId.GlowingColored;
-        public NameplateSizeMode SizeMode  { get; set; } = NameplateSizeMode.Large;
+        public IconSetId IconSetId
+        { get; set; } = IconSetId.GlowingColored;
+        public NameplateSizeMode SizeMode { get; set; } = NameplateSizeMode.Large;
 
-        public NameplateMode NameplateOverworld    { get; set; } = NameplateMode.JobIconAndName;
+        public NameplateMode NameplateOverworld { get; set; } = NameplateMode.JobIconAndName;
         public NameplateMode NameplateAllianceRaid { get; set; } = NameplateMode.JobIcon;
-        public NameplateMode NameplateDungeon      { get; set; } = NameplateMode.JobIcon;
-        public NameplateMode NameplateRaid         { get; set; } = NameplateMode.RoleLetters;
-        public NameplateMode NameplateOthers       { get; set; } = NameplateMode.JobIconAndName;
+        public NameplateMode NameplateDungeon { get; set; } = NameplateMode.JobIcon;
+        public NameplateMode NameplateRaid { get; set; } = NameplateMode.RoleLetters;
+        public NameplateMode NameplateOthers { get; set; } = NameplateMode.JobIconAndName;
         public NameplateMode NameplatePvP { get; set; } = NameplateMode.JobIconAndRoleLettersUncolored;
 
-        public ChatMode ChatOverworld    { get; set; } = ChatMode.Role;
+        public ChatMode ChatOverworld { get; set; } = ChatMode.Role;
         public ChatMode ChatAllianceRaid { get; set; } = ChatMode.Role;
-        public ChatMode ChatDungeon      { get; set; } = ChatMode.Job;
-        public ChatMode ChatRaid         { get; set; } = ChatMode.Role;
-        public ChatMode ChatOthers       { get; set; } = ChatMode.Job;
-        public ChatMode ChatPvP          { get; set; } = ChatMode.GameDefault;
+        public ChatMode ChatDungeon { get; set; } = ChatMode.Job;
+        public ChatMode ChatRaid { get; set; } = ChatMode.Role;
+        public ChatMode ChatOthers { get; set; } = ChatMode.Job;
+        public ChatMode ChatPvP { get; set; } = ChatMode.GameDefault;
 
         public Dictionary<string, RoleId> StaticAssignments { get; set; } = new();
 
