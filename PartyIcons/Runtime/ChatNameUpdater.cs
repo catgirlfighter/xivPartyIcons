@@ -12,6 +12,7 @@ using Lumina.Excel.GeneratedSheets;
 using PartyIcons.Stylesheet;
 using PartyIcons.View;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using PartyIcons.Utils;
 
 namespace PartyIcons.Runtime
 {
@@ -73,7 +74,11 @@ namespace PartyIcons.Runtime
                 string memberName = member.Name->NodeText.ToString();
                 if (memberName.EndsWith(sender.ToString()))
                 {
-                    _chatGui.PrintChat(new XivChatEntry { Type = XivChatType.Party, Name = sender, Message = message });
+                    _chatGui.PrintChat(new XivChatEntry { 
+                        Type = XivChatType.Party, 
+                        Name = SeStringUtils.Text(PlayerStylesheet.BoxedCharacterString((i + 2).ToString())).Append(sender), 
+                        Message = message 
+                    });
                     return true;
                 }
             }
