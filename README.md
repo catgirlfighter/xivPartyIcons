@@ -1,4 +1,8 @@
-# PartyIcons
+# JobIcons
+
+That's an old fork of original project PartyIcons
+https://github.com/shdwp/xivPartyIcons
+
 Plugin to dispay icons instead of names in parties. 
 
 * Show small job icons and names
