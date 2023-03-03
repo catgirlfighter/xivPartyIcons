@@ -1,6 +1,6 @@
 using System;
 
-namespace PartyIcons.Entities
+namespace PartyNamplates.Entities
 {
     public enum Job : uint
     {

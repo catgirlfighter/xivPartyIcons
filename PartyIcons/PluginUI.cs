@@ -8,11 +8,11 @@ using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiNET;
 using ImGuiScene;
-using PartyIcons.Entities;
-using PartyIcons.Stylesheet;
-using PartyIcons.View;
+using PartyNamplates.Entities;
+using PartyNamplates.Stylesheet;
+using PartyNamplates.View;
 
-namespace PartyIcons
+namespace PartyNamplates
 {
     class PluginUI : IDisposable
     {
@@ -175,7 +175,7 @@ namespace PartyIcons
             ImGui.SetNextItemWidth(300);
             if (ImGui.BeginCombo("##icon_set", IconSetIdToString(iconSetId)))
             {
-                foreach (var id in Enum.GetValues<IconSetId>())
+                foreach (var id in Enum.GetValues<IconSetMode>())
                 {
                     if (ImGui.Selectable(IconSetIdToString(id) + "##icon_set_" + id))
                     {
@@ -360,8 +360,8 @@ namespace PartyIcons
             {
                 ChatMode.GameDefault => "Game Default",
                 ChatMode.Role => "Role",
-                ChatMode.Job => "Job abbreviation",
-                ChatMode.OnlyColor => "Color only",
+                //ChatMode.Job => "Job abbreviation",
+                ChatMode.NameColor => "Color only",
                 _ => throw new ArgumentException(),
             };
         }
@@ -385,18 +385,18 @@ namespace PartyIcons
             }
         }
 
-        private string IconSetIdToString(IconSetId id)
+        private static string IconSetIdToString(IconSetMode id)
         {
             return id switch
             {
-                IconSetId.Framed => "Framed, role colored",
-                IconSetId.GlowingColored => "Glowing, role colored",
-                IconSetId.GlowingGold => "Glowing, gold",
+                IconSetMode.None => "None",
+                IconSetMode.Framed => "Framed, role colored",
+                IconSetMode.GlowingColored => "Glowing, role colored",
                 _ => throw new Exception($"unknown IconSetId({id})")
             };
         }
 
-        private string NameplateModeToString(NameplateMode mode)
+        private static string NameplateModeToString(NameplateMode mode)
         {
             return mode switch
             {

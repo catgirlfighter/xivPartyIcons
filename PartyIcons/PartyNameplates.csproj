@@ -1,51 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Authors>shdwp</Authors>
-    <Company>shdwp</Company>
-    <Description>PartyIcons plugin</Description>
-    <Copyright>shdwp 2021</Copyright>
-    <PackageProjectUrl>https://github.com/shdwp/xivPartyIcons</PackageProjectUrl>
+    <Authors>cgfighter</Authors>
+    <Company></Company>
+    <Version>1.0.2.0</Version>
+    <Description>JobIcons plugin</Description>
+    <Copyright></Copyright>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageVersion>1.0.2.0</PackageVersion>
     <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputPath>$(AppData)\XIVLauncher\devPlugins\PartyIcons\</OutputPath>
+    <!--<OutputPath>$(AppData)\XIVLauncher\devPlugins\PartyIcons\</OutputPath>-->
+	<OutputPath>..\..\built</OutputPath>
   </PropertyGroup>
-
+<!--
   <ItemGroup>
     <Content Include="..\Data\PartyIcons.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="Resources/1.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources/2.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources/3.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Resources/4.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
-
+-->
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.5" />
+    <PackageReference Include="Dalamud.ContextMenu" Version="1.2.1" />
+    <PackageReference Include="DalamudPackager" Version="2.1.10" />
     <PackageReference Include="ILRepack" Version="2.1.0-beta1" />
-    <PackageReference Include="XivCommon" Version="4.0.0-alpha.2" />
+    <PackageReference Include="XivCommon" Version="6.0.2" />
     <Reference Include="FFXIVClientStructs">
       <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
       <Private>false</Private>

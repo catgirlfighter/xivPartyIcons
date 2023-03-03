@@ -1,28 +1,28 @@
 ﻿using System;
 using Dalamud.Hooking;
 using Dalamud.Logging;
-using PartyIcons.Api;
-using PartyIcons.Entities;
-using PartyIcons.Utils;
-using PartyIcons.View;
 using XivCommon;
+using PartyNamplates.Api;
+using PartyNamplates.Entities;
+using PartyNamplates.Utils;
+using PartyNamplates.View;
 
-namespace PartyIcons.Runtime
+namespace PartyNamplates.Runtime
 {
     public sealed class NameplateUpdater : IDisposable
     {
-        private NameplateView _view;
-        private PluginAddressResolver _address;
-        private Hook<SetNamePlateDelegate> _hook;
-        private XivCommonBase _base;
+        private readonly NameplateView _view;
+        private readonly PluginAddressResolver _address;
+        private readonly Hook<SetNamePlateDelegate> _hook;
+        private readonly XivCommonBase _base;
         private int _forceRedrawCount = 0;
 
-        public NameplateUpdater(PluginAddressResolver address, NameplateView view, XivCommonBase @base)
+        public NameplateUpdater(XivCommonBase xivCommonBase, PluginAddressResolver address,  NameplateView view)
         {
             _address = address;
             _view = view;
-            _base = @base;
-            _hook = new Hook<SetNamePlateDelegate>(_address.AddonNamePlate_SetNamePlatePtr, SetNamePlateDetour);
+            _base = xivCommonBase;
+            _hook = Hook<SetNamePlateDelegate>.FromAddress(_address.AddonNamePlate_SetNamePlatePtr, SetNamePlateDetour);
         }
 
         public void Enable()

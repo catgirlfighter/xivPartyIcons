@@ -10,16 +10,16 @@ using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Network;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using PartyIcons.Api;
-using PartyIcons.Runtime;
-using PartyIcons.Stylesheet;
-using PartyIcons.Utils;
-using PartyIcons.View;
 using Dalamud.Data;
 using XivCommon;
 using SigScanner = Dalamud.Game.SigScanner;
+using PartyNamplates.Api;
+using PartyNamplates.Runtime;
+using PartyNamplates.Stylesheet;
+using PartyNamplates.Utils;
+using PartyNamplates.View;
 
-namespace PartyIcons
+namespace PartyNamplates
 {
     public sealed class Plugin : IDalamudPlugin
     {
@@ -50,16 +50,15 @@ namespace PartyIcons
         public GameNetwork GameNetwork;
         public Condition Condition;
         public ToastGui ToastGui;
-        public string Name => "PartyIcons";
+        public string Name => "PartyNamePlate";
 
-        private const string commandName = "/ppi";
-        public PluginAddressResolver Address { get; }
-        private XivCommonBase Base { get; }
-        private Configuration Configuration { get; }
-
+        private const string commandName = "/pnp";
+        private readonly PluginAddressResolver _address;
+        private readonly XivCommonBase _base;
+        private readonly Configuration _configuration;
         private readonly PartyListHUDView _partyHUDView;
         private readonly PartyListHUDUpdater _partyListHudUpdater;
-        private readonly PlayerContextMenu _contextMenu;
+        //private readonly PlayerContextMenu _contextMenu;
         private readonly PluginUI _ui;
         private readonly NameplateUpdater _nameplateUpdater;
         private readonly NPCNameplateFixer _npcNameplateFixer;
@@ -67,8 +66,6 @@ namespace PartyIcons
         private readonly RoleTracker _roleTracker;
         private readonly ViewModeSetter _modeSetter;
         private readonly ChatNameUpdater _chatNameUpdater;
-        //private readonly PlayerStylesheet _playerStylesheet;
-
         public Plugin()
         {
             //turning nullables into not nullables for public use
@@ -86,53 +83,52 @@ namespace PartyIcons
             if (FCondition != null) Condition = FCondition; else throw new Exception("Condition is not Assigned");
             if (FToastGui != null) ToastGui = FToastGui; else throw new Exception("ToastGui is not Assigned");
 
-            Configuration = Interface.GetPluginConfig() as Configuration ?? new Configuration();
-            Configuration.Initialize(Interface);
-            Configuration.OnSave += OnConfigurationSave;
+            _configuration = Interface.GetPluginConfig() as Configuration ?? new Configuration();
+            _configuration.Initialize(Interface);
+            _configuration.OnSave += OnConfigurationSave;
 
             CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "opens configuration window; \"reset\" or \"r\" resets all assignments; \"debug\" prints debugging info."
             });
 
-            Address = new PluginAddressResolver();
-            Address.Setup(SigScanner);
+            _address = new PluginAddressResolver();
+            _address.Setup(SigScanner);
 
-            _ui = new PluginUI(Configuration);
+            _ui = new PluginUI(_configuration);
             Interface.Inject(_ui);
 
-            Base = new XivCommonBase(Hooks.ContextMenu);
-            XivApi.Initialize(this, Address);
+            _base = new XivCommonBase();
+            XivApi.Initialize(this, _address);
 
             SeStringUtils.Initialize();
 
-            _partyHUDView = new PartyListHUDView(GameGui, Configuration);
+            _partyHUDView = new PartyListHUDView(this, _configuration);
 
-            _roleTracker = new RoleTracker(this, Configuration);
+            _roleTracker = new RoleTracker(this, _configuration);
             Interface.Inject(_roleTracker);
 
-            _nameplateView = new NameplateView(this, _roleTracker, Configuration, _partyHUDView);
+            _nameplateView = new NameplateView(this, _roleTracker, _partyHUDView, _configuration);
             Interface.Inject(_nameplateView);
 
-            _chatNameUpdater = new ChatNameUpdater(this, _roleTracker, Configuration);
+            _chatNameUpdater = new ChatNameUpdater(this, _roleTracker, _configuration);
             Interface.Inject(_chatNameUpdater);
 
-            _partyListHudUpdater = new PartyListHUDUpdater(this, _partyHUDView, _roleTracker, Configuration);
+            _partyListHudUpdater = new PartyListHUDUpdater(this, _partyHUDView, _roleTracker, _configuration);
             Interface.Inject(_partyListHudUpdater);
 
-            _nameplateUpdater = new NameplateUpdater(Address, _nameplateView, Base);
+            _nameplateUpdater = new NameplateUpdater(_base, _address, _nameplateView);
             _npcNameplateFixer = new NPCNameplateFixer(_nameplateView);
 
-            _contextMenu = new PlayerContextMenu(Base, _roleTracker, Configuration);
-            Interface.Inject(_contextMenu);
+            //_contextMenu = new PlayerContextMenu(this, _base, _roleTracker, _configuration);
+            //Interface.Inject(_contextMenu);
 
-            //_ui.Initialize();
             Interface.UiBuilder.Draw += _ui.DrawSettingsWindow;
             Interface.UiBuilder.OpenConfigUi += _ui.OpenSettings;
 
             _roleTracker.OnAssignedRolesUpdated += OnAssignedRolesUpdated;
 
-            _modeSetter = new ViewModeSetter(this, _nameplateView, Configuration, _chatNameUpdater, _partyListHudUpdater);
+            _modeSetter = new ViewModeSetter(this, _nameplateView, _configuration, _chatNameUpdater, _partyListHudUpdater);
             Interface.Inject(_modeSetter);
 
             _partyListHudUpdater.Enable();
@@ -141,7 +137,7 @@ namespace PartyIcons
             _nameplateUpdater.Enable();
             _npcNameplateFixer.Enable();
             _chatNameUpdater.Enable();
-            _contextMenu.Enable();
+            //_contextMenu.Enable();
         }
 
         public void Dispose()
@@ -151,7 +147,7 @@ namespace PartyIcons
             _partyHUDView.Dispose();
             _partyListHudUpdater.Dispose();
             _chatNameUpdater.Dispose();
-            _contextMenu.Dispose();
+            //_contextMenu.Dispose();
             _nameplateUpdater.Dispose();
             _npcNameplateFixer.Dispose();
             _roleTracker.Dispose();
@@ -164,7 +160,7 @@ namespace PartyIcons
             XivApi.DisposeInstance();
 
             CommandManager.RemoveHandler(commandName);
-            Configuration.OnSave -= OnConfigurationSave;
+            _configuration.OnSave -= OnConfigurationSave;
         }
 
         private void OnConfigurationSave()
@@ -193,12 +189,12 @@ namespace PartyIcons
                 _roleTracker.CalculateUnassignedPartyRoles();
                 ChatGui.Print("Occupations are reset, roles are auto assigned.");
             }
-            else if (arguments == "dbg state")
+            else if (arguments == "state")
             {
                 ChatGui.Print($"Current mode is {_nameplateView.PartyMode}, party count {PartyList.Length}");
                 ChatGui.Print(_roleTracker.DebugDescription());
             }
-            else if (arguments == "dbg party")
+            else if (arguments == "party")
             {
                 ChatGui.Print($"Party Size = {PartyList.Length}");
                 foreach (var member in PartyList)

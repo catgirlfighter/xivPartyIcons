@@ -13,9 +13,9 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Logging;
-using PartyIcons.Entities;
+using PartyNamplates.Entities;
 
-namespace PartyIcons.Runtime
+namespace PartyNamplates.Runtime
 {
     public sealed class RoleTracker : IDisposable
     {
@@ -175,65 +175,72 @@ namespace PartyIcons.Runtime
 
         public void CalculateUnassignedPartyRoles()
         {
-            ResetAssignments();
-
-            PluginLog.Debug($"Assigning current occupations ({_occupiedRoles.Count})");
-            foreach (var kv in _occupiedRoles)
+            try
             {
-                PluginLog.Debug($"{kv.Key} == {kv.Value} as per occupation");
+                ResetAssignments();
 
-                _assignedRoles[kv.Key] = kv.Value;
-                _unassignedRoles.Remove(kv.Value);
-            }
+                PluginLog.Debug($"Assigning current occupations ({_occupiedRoles.Count})");
+                foreach (var kv in _occupiedRoles)
+                {
+                    PluginLog.Debug($"{kv.Key} == {kv.Value} as per occupation");
 
-            PluginLog.Debug($"Assigning static assignments ({_configuration.StaticAssignments.Count})");
-            foreach (var kv in _configuration.StaticAssignments)
-            {
+                    _assignedRoles[kv.Key] = kv.Value;
+                    _unassignedRoles.Remove(kv.Value);
+                }
+
+                PluginLog.Debug($"Assigning static assignments ({_configuration.StaticAssignments.Count})");
+                foreach (var kv in _configuration.StaticAssignments)
+                {
+                    foreach (var member in _partyList)
+                    {
+                        var playerId = PlayerId(member);
+                        if (_assignedRoles.ContainsKey(playerId))
+                        {
+                            PluginLog.Debug($"{PlayerId(member)} has already been assigned a role");
+                            continue;
+                        }
+
+                        var playerDescription = $"{member.Name}@{member?.World?.GameData?.Name}";
+                        if (kv.Key.Equals(playerDescription))
+                        {
+                            var applicableRoles = GetApplicableRolesForGenericRole(JobRoleExtensions.RoleFromByte(member?.ClassJob?.GameData?.Role ?? 0), _configuration.EasternNamingConvention);
+                            if (applicableRoles.Contains(kv.Value))
+                            {
+                                PluginLog.Debug($"{playerId} == {kv.Value} as per static assignments {playerDescription}");
+                                _assignedRoles[playerId] = kv.Value;
+                            }
+                            else
+                            {
+                                PluginLog.Debug($"Skipping static assignment - applicable roles {string.Join(", ", applicableRoles)}, static role - {kv.Value}");
+                            }
+                        }
+                    }
+                }
+
+                PluginLog.Debug("Assigning the rest");
                 foreach (var member in _partyList)
                 {
-                    var playerId = PlayerId(member);
-                    if (_assignedRoles.ContainsKey(playerId))
+                    if (_assignedRoles.ContainsKey(PlayerId(member)))
                     {
                         PluginLog.Debug($"{PlayerId(member)} has already been assigned a role");
                         continue;
                     }
 
-                    var playerDescription = $"{member.Name}@{member.World.GameData.Name}";
-                    if (kv.Key.Equals(playerDescription))
+                    RoleId roleToAssign = FindUnassignedRoleForGenericRole(JobRoleExtensions.RoleFromByte(member?.ClassJob?.GameData?.Role ?? 0));
+                    if (roleToAssign != default)
                     {
-                        var applicableRoles = GetApplicableRolesForGenericRole(JobRoleExtensions.RoleFromByte(member.ClassJob.GameData.Role), _configuration.EasternNamingConvention);
-                        if (applicableRoles.Contains(kv.Value))
-                        {
-                            PluginLog.Debug($"{playerId} == {kv.Value} as per static assignments {playerDescription}");
-                            _assignedRoles[playerId] = kv.Value;
-                        }
-                        else
-                        {
-                            PluginLog.Debug($"Skipping static assignment - applicable roles {string.Join(", ", applicableRoles)}, static role - {kv.Value}");
-                        }
+                        PluginLog.Debug($"{PlayerId(member)} == {roleToAssign} as per first available");
+                        _assignedRoles[PlayerId(member)] = roleToAssign;
+                        _unassignedRoles.Remove(roleToAssign);
                     }
                 }
-            }
 
-            PluginLog.Debug("Assigning the rest");
-            foreach (var member in _partyList)
+                OnAssignedRolesUpdated?.Invoke();
+            }
+            catch (Exception ex)
             {
-                if (_assignedRoles.ContainsKey(PlayerId(member)))
-                {
-                    PluginLog.Debug($"{PlayerId(member)} has already been assigned a role");
-                    continue;
-                }
-
-                RoleId roleToAssign = FindUnassignedRoleForGenericRole(JobRoleExtensions.RoleFromByte(member.ClassJob.GameData.Role));
-                if (roleToAssign != default)
-                {
-                    PluginLog.Debug($"{PlayerId(member)} == {roleToAssign} as per first available");
-                    _assignedRoles[PlayerId(member)] = roleToAssign;
-                    _unassignedRoles.Remove(roleToAssign);
-                }
+                PluginLog.Log($"CalculateUnassignedPartyRoles: {ex.Message}");
             }
-
-            OnAssignedRolesUpdated?.Invoke();
         }
 
         public string DebugDescription()
@@ -281,7 +288,8 @@ namespace PartyIcons.Runtime
             {
                 unchecked
                 {
-                    partyHash = partyHash * 23 + (int)member.ObjectId;
+                    //partyHash = partyHash * 23 + (int)member.ObjectId;
+                    partyHash = partyHash * 40 + (int)member.ClassJob.Id/*(int)member.ObjectId*/;
                 }
             }
 
@@ -299,9 +307,9 @@ namespace PartyIcons.Runtime
             return $"{name}@{worldId}";
         }
 
-        private static string PlayerId(PartyMember member)
+        private static string PlayerId(PartyMember? member)
         {
-            return $"{member.Name.TextValue}@{member.World.Id}";
+            return $"{member?.Name?.TextValue}@{member?.World.Id}";
         }
 
         private RoleId FindUnassignedRoleForGenericRole(GenericRole role)

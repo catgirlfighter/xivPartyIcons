@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-namespace PartyIcons.Utils
+namespace PartyNamplates.Utils
 {
     public static class PartyListHUD
     {
@@ -9,6 +9,11 @@ namespace PartyIcons.Utils
         {
             var hud = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentHUD();
             var list = (HudPartyMember*)hud->PartyMemberList;
+
+            if (hud->PartyMemberCount > 8)
+            {
+                return null;
+            }
 
             var result = new List<uint>();
             for (var i = 0; i < hud->PartyMemberCount; i++)

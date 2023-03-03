@@ -1,24 +1,27 @@
 ﻿using System;
-using Dalamud.Logging;
-using PartyIcons.Entities;
-using PartyIcons.Runtime;
-using PartyIcons.Stylesheet;
 using XivCommon;
-using XivCommon.Functions.ContextMenu;
+using Dalamud.Game.Gui.Toast;
+using PartyNamplates.Entities;
+using PartyNamplates.Runtime;
+using PartyNamplates.Stylesheet;
 
-namespace PartyIcons.View
+namespace PartyNamplates.View
 {
+    //xivcommon removed support of context menus in 5.0. It was buggy anyway, so loooking for an alternative for now
+    /*
     public sealed class PlayerContextMenu : IDisposable
     {
         private readonly XivCommonBase _base;
         private readonly RoleTracker _roleTracker;
         private readonly Configuration _configuration;
+        private readonly ToastGui _toastGui;
 
-        public PlayerContextMenu(XivCommonBase @base, RoleTracker roleTracker, Configuration configuration)
+        public PlayerContextMenu(Plugin plugin, XivCommonBase xivCommonBase, RoleTracker roleTracker, Configuration configuration)
         {
-            _base = @base;
+            _base = xivCommonBase;
             _roleTracker = roleTracker;
             _configuration = configuration;
+            _toastGui = plugin.ToastGui;
         }
 
         public void Enable()
@@ -43,19 +46,6 @@ namespace PartyIcons.View
                 return;
             }
             
-            if (_roleTracker.TryGetSuggestedRole(args.Text?.TextValue, args.ObjectWorld, out var role))
-            {
-                var roleName = PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention);
-                args.Items.Add(new NormalContextMenuItem($"Assign to {roleName} (suggested)", (args) => OnAssignRole(args, role)));
-            }
-            
-            if (_roleTracker.TryGetAssignedRole(args.Text?.TextValue, args.ObjectWorld, out var currentRole))
-            {
-                var swappedRole = RoleIdUtils.Counterpart(currentRole);
-                var swappedRoleName = PlayerStylesheet.GetRoleName(swappedRole, _configuration.EasternNamingConvention);
-                args.Items.Add(new NormalContextMenuItem($"Party role swap to {swappedRoleName}", (args) => OnAssignRole(args, swappedRole)));
-            }
-
             args.Items.Add(new NormalContextSubMenuItem("Assign Party Role", args =>
             {
                 foreach (var role in _roleTracker.GetAssignedRoleSet())
@@ -66,7 +56,8 @@ namespace PartyIcons.View
                 {
                     args.Items.Add(new NormalContextMenuItem(PlayerStylesheet.GetRoleName(role, _configuration.EasternNamingConvention), (args) => OnAssignRole(args, role)));
                 }
-                args.Items.Add(new NormalContextMenuItem("Return", (args) => { }));
+                args.Items.Add(new NormalContextMenuItem("Reset", (args) => { _roleTracker.ResetOccupations(); _toastGui.ShowNormal($"Occupations reset"); }));
+                args.Items.Add(new NormalContextMenuItem("_return", (args) => { }));
             }));
         }
         
@@ -75,7 +66,7 @@ namespace PartyIcons.View
             _roleTracker.OccupyRole(args.Text?.TextValue, args.ObjectWorld, roleId);
             _roleTracker.CalculateUnassignedPartyRoles();
         }     
-        private bool IsMenuValid(BaseContextMenuArgs args)
+        private static bool IsMenuValid(BaseContextMenuArgs args)
         {
             switch (args.ParentAddonName)
             {
@@ -98,4 +89,5 @@ namespace PartyIcons.View
             }
         }
     }
+    */
 }

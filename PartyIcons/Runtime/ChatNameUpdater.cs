@@ -9,12 +9,12 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Lumina.Excel.GeneratedSheets;
-using PartyIcons.Stylesheet;
-using PartyIcons.View;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using PartyIcons.Utils;
+using PartyNamplates.Stylesheet;
+using PartyNamplates.View;
+using PartyNamplates.Utils;
 
-namespace PartyIcons.Runtime
+namespace PartyNamplates.Runtime
 {
     public sealed class ChatNameUpdater : IDisposable
     {
@@ -57,6 +57,8 @@ namespace PartyIcons.Runtime
                     }
             }
 
+            //PluginLog.Log($"[{type}] {sender}: {message}");
+
             if (type == XivChatType.Say || type == XivChatType.Party || type == XivChatType.Alliance || type == XivChatType.Shout || type == XivChatType.Yell)
             {
                 Parse(type, ref sender);
@@ -66,7 +68,7 @@ namespace PartyIcons.Runtime
         private unsafe bool TryTrustMessage(SeString sender, SeString message)
         {
             var partyListAddon = (AddonPartyList*)_gameGui.GetAddonByName("_PartyList", 1);
-            var list = (PartyIconsEx.Api.TrustMembers*)&(partyListAddon->TrustMember);
+            var list = (PartyNamplates.Api.TrustMembers*)&(partyListAddon->TrustMember);
             
             for (int i = 0; i < partyListAddon->TrustCount; i++)
             {
@@ -133,8 +135,8 @@ namespace PartyIcons.Runtime
                     prefix = "";
                     return false;
                 }
-                prefix = playerNamePayload.Text.Substring(0, 1);
-                playerNamePayload.Text = playerNamePayload.Text.Substring(1);
+                prefix = playerNamePayload.Text == null ? "" : playerNamePayload.Text.Substring(0, 1);
+                playerNamePayload.Text = playerNamePayload.Text == null ? "" : playerNamePayload.Text.Substring(1);
 
                 return true;
             }
@@ -209,6 +211,7 @@ namespace PartyIcons.Runtime
                 var prefixString = new SeString();
                 switch (mode)
                 {
+                    /*
                     case ChatMode.Job:
                         prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetJobChatColor(senderJob)));
                         if (numberPrefix.Length > 0)
@@ -218,7 +221,7 @@ namespace PartyIcons.Runtime
                         prefixString.Append(PlayerStylesheet.GetJobChatPrefix(senderJob).Payloads);
                         prefixString.Append(new TextPayload(" "));
                         break;
-
+                    */
                     case ChatMode.Role:
                         prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetGenericRoleChatColor(senderJob)));
                         if (numberPrefix.Length > 0)
@@ -229,7 +232,7 @@ namespace PartyIcons.Runtime
                         prefixString.Append(new TextPayload(" "));
                         break;
 
-                    case ChatMode.OnlyColor:
+                    case ChatMode.NameColor:
                         prefixString.Append(new UIForegroundPayload(PlayerStylesheet.GetGenericRoleChatColor(senderJob)));
                         if (numberPrefix.Length > 0)
                         {

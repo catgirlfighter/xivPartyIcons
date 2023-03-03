@@ -4,7 +4,7 @@ using Dalamud.Game;
 using Dalamud.Game.Text;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
-namespace PartyIcons.Api
+namespace PartyNamplates.Api
 {
     [UnmanagedFunctionPointer(CallingConvention.ThisCall, CharSet = CharSet.Ansi)]
     public delegate IntPtr SetNamePlateDelegate(IntPtr addon, bool isPrefixTitle, bool displayTitle, IntPtr title, IntPtr name, IntPtr fcName, int iconID);

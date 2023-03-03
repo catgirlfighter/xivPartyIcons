@@ -3,11 +3,11 @@ using System.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Lumina.Excel.GeneratedSheets;
-using PartyIcons.Entities;
-using PartyIcons.Utils;
-using PartyIcons.View;
+using PartyNamplates.Entities;
+using PartyNamplates.Utils;
+using PartyNamplates.View;
 
-namespace PartyIcons.Stylesheet
+namespace PartyNamplates.Stylesheet
 {
     public static class PlayerStylesheet
     {
@@ -46,17 +46,17 @@ namespace PartyIcons.Stylesheet
             };
         }
 
-        public static string GetRoleIconset(RoleId roleId, IconSetId iconSetId)
+        public static string GetRoleIconset(RoleId roleId, IconSetMode iconSetId)
         {
             switch (iconSetId)
             {
-                case IconSetId.Framed:
+                case IconSetMode.Framed:
                     return "Framed";
 
-                case IconSetId.GlowingGold:
-                    return "Glowing";
+                //case IconSetId.GlowingGold:
+                //    return "Glowing";
 
-                case IconSetId.GlowingColored:
+                case IconSetMode.GlowingColored:
                     return GetRoleInd(roleId) switch
                     {
                         RoleIdUtils.ROLE_TANK => "Blue",
@@ -71,13 +71,13 @@ namespace PartyIcons.Stylesheet
             }
         }
 
-        public static string GetGenericRoleIconset(GenericRole role, IconSetId iconSetId)
+        public static string GetGenericRoleIconset(GenericRole role, IconSetMode iconSetId)
         {
             return iconSetId switch
             {
-                IconSetId.Framed => "Framed",
-                IconSetId.GlowingGold => "Glowing",
-                IconSetId.GlowingColored => role switch
+                IconSetMode.Framed => "Framed",
+                //IconSetId.GlowingGold => "Glowing",
+                IconSetMode.GlowingColored => role switch
                 {
                     GenericRole.Tank => "Blue",
                     GenericRole.Melee => "Red",

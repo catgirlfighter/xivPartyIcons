@@ -1,0 +1,14 @@
+{
+  "Author": "cgfighter",
+  "Name": "PartyNameplates",
+  "Punchline": "Replace names with job icons, raid role positions and more!",
+  "Description": "Old fork of original project named PartyIcons",
+  "InternalName": "PartyNameplates",
+  "AssemblyVersion": "1.0.3.0",
+  "DalamudApiLevel": "5",
+  "RepoUrl": "https://github.com/catgirlfighter/xivPartyIcons",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "UI"
+  ]
+}

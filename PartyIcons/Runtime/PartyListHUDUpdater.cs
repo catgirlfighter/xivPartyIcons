@@ -6,9 +6,9 @@ using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Network;
 using Dalamud.IoC;
 using Dalamud.Logging;
-using PartyIcons.Utils;
+using PartyNamplates.Utils;
 
-namespace PartyIcons.Runtime
+namespace PartyNamplates.Runtime
 {
     public sealed class PartyListHUDUpdater : IDisposable
     {
@@ -23,11 +23,11 @@ namespace PartyIcons.Runtime
         private readonly PartyListHUDView _view;
         private readonly RoleTracker _roleTracker;
 
-        private bool _previousInParty = false;
+        private int _previousPartySize = 0;
 
-        public PartyListHUDUpdater(Plugin plugin, PartyListHUDView view, RoleTracker roleTracker, Configuration configuration)
+        public PartyListHUDUpdater(Plugin plugin, PartyListHUDView partyListHUDView, RoleTracker roleTracker, Configuration configuration)
         {
-            _view = view;
+            _view = partyListHUDView;
             _roleTracker = roleTracker;
             _configuration = configuration;
             _partyList = plugin.PartyList;
@@ -54,6 +54,7 @@ namespace PartyIcons.Runtime
         {
             PluginLog.Debug("PartyListHUDUpdater forcing update due to assignments update");
             UpdatePartyListHUD();
+            //_roleTracker.CalculateUnassignedPartyRoles();
         }
 
         private void OnNetworkMessage(IntPtr dataptr, ushort opcode, uint sourceactorid, uint targetactorid, NetworkMessageDirection direction)
@@ -62,19 +63,27 @@ namespace PartyIcons.Runtime
             {
                 PluginLog.Debug("PartyListHUDUpdater Forcing update due to zoning");
                 UpdatePartyListHUD();
+                PluginLog.Log($"OnNetworkMessage");
+                 //_roleTracker.CalculateUnassignedPartyRoles();
             }
         }
 
         private void OnUpdate(Framework framework)
         {
-            var inParty = _partyList.Any();
-            if (!inParty && _previousInParty)
+            var partySize = _partyList.Count();
+            if (partySize == 0 && _previousPartySize > 0)
             {
                 PluginLog.Debug("No longer in party, reverting party list HUD changes");
                 _view.RevertSlotNumbers();
             }
 
-            _previousInParty = inParty;
+            if (partySize != _previousPartySize)
+            {
+                PluginLog.Log($"OnUpdate");
+                //_roleTracker.CalculateUnassignedPartyRoles();
+            }
+
+            _previousPartySize = partySize;
         }
 
         private void UpdatePartyListHUD()
@@ -96,7 +105,7 @@ namespace PartyIcons.Runtime
                 if (index != null && _roleTracker.TryGetAssignedRole(member.Name.ToString(), member.World.Id, out var role))
                 {
                     PluginLog.Debug($"Updating party list hud: member {member.Name} index {index} to {role}");
-                    _view.SetPartyMemberRole(index.Value, role);
+                    if (index != null) _view.SetPartyMemberRole(index.Value, role);
                 }
             }
         }

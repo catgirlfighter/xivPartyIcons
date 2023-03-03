@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace PartyIcons.View
+namespace PartyNamplates.View
 {
+
     public sealed class IconSet
     {
         private Dictionary<string, int[]> _icons      = new();

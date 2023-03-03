@@ -4,7 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
-namespace PartyIconsEx.Api
+namespace PartyNamplates.Api
 {
     [StructLayout(LayoutKind.Explicit, Size = 1792)]
     public struct TrustMembers

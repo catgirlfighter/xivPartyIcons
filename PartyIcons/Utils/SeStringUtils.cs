@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
-namespace PartyIcons.Utils
+namespace PartyNamplates.Utils
 {
     public static class SeStringUtils
     {

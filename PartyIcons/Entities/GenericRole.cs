@@ -1,6 +1,6 @@
 using System;
 
-namespace PartyIcons.Entities
+namespace PartyNamplates.Entities
 {
     public enum GenericRole : uint
     {
@@ -30,6 +30,7 @@ namespace PartyIcons.Entities
 
         public static GenericRole RoleFromByte(byte roleId)
         {
+            if (roleId == 0) throw new Exception("unknown role");
             return (GenericRole)(roleId - 1);
         }
     }

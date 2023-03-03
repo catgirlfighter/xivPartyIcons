@@ -2,10 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Logging;
-using PartyIcons.Api;
-using PartyIcons.View;
+using PartyNamplates.Api;
+using PartyNamplates.View;
 
-namespace PartyIcons.Runtime
+namespace PartyNamplates.Runtime
 {
     public sealed class NPCNameplateFixer : IDisposable
     {

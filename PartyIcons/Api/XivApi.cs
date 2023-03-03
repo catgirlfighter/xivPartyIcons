@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+//using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace PartyIcons.Api
+namespace PartyNamplates.Api
 {
     public class XivApi : IDisposable
     {
         public static int ThreadID => System.Threading.Thread.CurrentThread.ManagedThreadId;
 
         private static Plugin? _plugin;
+        private static PluginAddressResolver? _address;
 
         private readonly SetNamePlateDelegate SetNamePlate;
         private readonly Framework_GetUIModuleDelegate GetUIModule;
@@ -28,8 +31,12 @@ namespace PartyIcons.Api
         private static XivApi? _instance;
         public static void Initialize(Plugin plugin, PluginAddressResolver address)
         {
-            _plugin ??= plugin;
-            _instance ??= new XivApi(plugin.Interface, address);
+            if (_instance == null)
+            {
+                _instance = new XivApi(plugin.Interface, address);
+                _plugin = plugin;
+                _address = address;
+            }
         }
 
         private XivApi(DalamudPluginInterface pluginInterface, PluginAddressResolver address)
@@ -62,15 +69,11 @@ namespace PartyIcons.Api
                 if (_plugin == null || _instance == null) return IntPtr.Zero;
                 if (_RaptureAtkModulePtr == IntPtr.Zero)
                 {
-                    var frameworkPtr = _plugin.Framework.Address.BaseAddress;
-                    var uiModulePtr = _instance.GetUIModule(frameworkPtr);
-
                     unsafe
                     {
-                        var uiModule = *(UIModule*)uiModulePtr;
-                        var UIModule_GetRaptureAtkModuleAddress = new IntPtr(uiModule.vfunc[7]);
-                        var GetRaptureAtkModule = Marshal.GetDelegateForFunctionPointer<UIModule_GetRaptureAtkModuleDelegate>(UIModule_GetRaptureAtkModuleAddress);
-                        _RaptureAtkModulePtr = GetRaptureAtkModule(uiModulePtr);
+                        var framework = Framework.Instance();
+                        var uiModule = framework->GetUiModule();
+                        _RaptureAtkModulePtr = new IntPtr(uiModule->GetRaptureAtkModule());
                     }
                 }
                 return _RaptureAtkModulePtr;
@@ -83,8 +86,8 @@ namespace PartyIcons.Api
 
         public static SafeAddonNamePlate GetSafeAddonNamePlate() => _plugin == null ? throw new Exception("Plugin is not assigned") : new SafeAddonNamePlate(_plugin.Interface);
         public static bool IsLocalPlayer(uint actorID) => _plugin?.ClientState.LocalPlayer?.ObjectId == actorID;
-        public static bool IsPartyMember(uint actorID) => _plugin != null && _instance?.IsObjectIDInParty(_plugin.Address.GroupManagerPtr, actorID) == 1;
-        public static bool IsAllianceMember(uint actorID) => _plugin != null && _instance?.IsObjectIDInParty(_plugin.Address.GroupManagerPtr, actorID) == 1;
+        public static bool IsPartyMember(uint actorID) => _plugin != null && _instance?.IsObjectIDInParty(_address?.GroupManagerPtr ?? IntPtr.Zero, actorID) == 1;
+        public static bool IsAllianceMember(uint actorID) => _plugin != null && _instance?.IsObjectIDInParty(_address?.GroupManagerPtr ?? IntPtr.Zero, actorID) == 1;
         public static bool IsPlayerCharacter(uint actorID)
         {
             if (_plugin != null)

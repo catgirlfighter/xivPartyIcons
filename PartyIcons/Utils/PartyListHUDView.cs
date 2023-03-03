@@ -4,10 +4,10 @@ using Dalamud.Game.Gui;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using PartyIcons.Entities;
-using PartyIcons.Stylesheet;
+using PartyNamplates.Entities;
+using PartyNamplates.Stylesheet;
 
-namespace PartyIcons.Utils
+namespace PartyNamplates.Utils
 {
     public unsafe class PartyListHUDView : IDisposable
     {
@@ -15,10 +15,9 @@ namespace PartyIcons.Utils
         private readonly Configuration _configuration;
         private readonly GameGui _gameGui;
 
-        public PartyListHUDView(GameGui gameGui, Configuration configuration)
+        public PartyListHUDView(Plugin plugin, Configuration configuration)
         {
-            _gameGui = gameGui;
-            //_stylesheet = stylesheet;
+            _gameGui = plugin.GameGui;
             _configuration = configuration;
         }
 
@@ -50,6 +49,9 @@ namespace PartyIcons.Utils
 
         public uint? GetPartySlotIndex(uint objectId)
         {
+            if (objectId == 0)
+                return null;
+
             var hud = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetAgentModule()->GetAgentHUD();
             if (hud == null)
             {

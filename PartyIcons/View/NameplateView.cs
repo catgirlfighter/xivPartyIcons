@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Game.ClientState;
@@ -8,14 +9,13 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.IoC;
 using Dalamud.Logging;
-using PartyIcons.Api;
-using PartyIcons.Entities;
-using PartyIcons.Runtime;
-using PartyIcons.Stylesheet;
-using PartyIcons.Utils;
-using System.Linq;
+using PartyNamplates.Api;
+using PartyNamplates.Entities;
+using PartyNamplates.Runtime;
+using PartyNamplates.Stylesheet;
+using PartyNamplates.Utils;
 
-namespace PartyIcons.View
+namespace PartyNamplates.View
 {
     public sealed class NameplateView : IDisposable
     {
@@ -31,20 +31,19 @@ namespace PartyIcons.View
         private readonly IconSet _iconSet;
         private string iconPrefix = "   ";
         private string statIconPrefix = "   ";
-        private readonly int[] _ignorableStates = { 061521, 061522, 061523, 061540, 061542, 061543, 061544, 061547 };
-        private readonly float[] _iconSetScale = { 1.2f, 0.8f, 0.75f };
-        private readonly Vector2[] _iconSetOffset = { new Vector2(-2, -5), new Vector2(3, 0), new Vector2(3, 2) };
+        private readonly int[] _ignorableStates = { 061506, 061521, 061522, 061523, 061540, 061542, 061543, 061544, 061547 };
+        private readonly float[] _iconSetScale = { 1.2f, 1f, 0.8f };
+        private readonly Vector2[] _iconSetOffset = { new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(3f, 3f) };
 
         public NameplateMode PartyMode { get; set; }
         public NameplateMode OthersMode { get; set; }
 
 
-        public NameplateView(Plugin plugin, RoleTracker roleTracker, Configuration configuration, PartyListHUDView partyListHudView)
+        public NameplateView(Plugin plugin, RoleTracker roleTracker, PartyListHUDView partyListHUDView, Configuration configuration)
         {
             _roleTracker = roleTracker;
             _configuration = configuration;
-            //_stylesheet = stylesheet;
-            _partyListHudView = partyListHudView;
+            _partyListHudView = partyListHUDView;
             _iconSet = new IconSet();
             _objectTable = plugin.ObjectTable;
             _clientState = plugin.ClientState;
@@ -116,7 +115,7 @@ namespace PartyIcons.View
             else
             {
                 iconScale = _iconSetScale[(int)_configuration.IconSetId];
-                coords = new Vector2(13, 2);// + _iconSetOffset[(int)_configuration.IconSetId];
+                coords = new Vector2(10, 0);// + _iconSetOffset[(int)_configuration.IconSetId];
             }
 
             switch (mode)
@@ -232,21 +231,26 @@ namespace PartyIcons.View
                 case NameplateMode.JobIconAndPartySlot:
                     fcName = SeStringUtils.emptyPtr;
                     displayTitle = false;
-                    var partySlot = _partyListHudView.GetPartySlotIndex(namePlateInfo == null ? 0 : namePlateInfo.Data.ObjectID.ObjectID) + 1;
-                    if (partySlot != null || hasRole)
+                    var partySlot = _partyListHudView.GetPartySlotIndex(namePlateInfo == null ? 0 : namePlateInfo.Data.ObjectID.ObjectID);
+                    if (partySlot != null)
+                        partySlot++;
+
+                    if (partySlot == null)
                     {
                         var genericRole = JobExtensions.GetRole((Job)(namePlateInfo == null ? 0 : namePlateInfo.GetJobID()));
-                        SeString? text;// = SeStringUtils.Text(" ");
-                        if (partySlot == null)
+                        SeString? text;
+                        if (hasRole)
                             text = SeStringUtils.Color(PlayerStylesheet.GetRolePlateNumber(roleId, _configuration.EasternNamingConvention), PlayerStylesheet.GetRoleColor(genericRole));
                         else
-                            text = SeStringUtils.Color(PlayerStylesheet.GetPartySlotNumber(partySlot.Value, genericRole), PlayerStylesheet.GetRoleColor(genericRole));
+                            text = "";
                         name = GetStateNametext(_configuration.ShowPlayerStatus ? iconID : -1, iconPrefix, statIconPrefix, text);
                         iconID = GetClassIcon(npObject.NamePlateInfo, _configuration.ShowPlayerStatus ? iconID : -1);
                     }
                     else
                     {
-                        name = GetStateNametext(_configuration.ShowPlayerStatus ? iconID : -1, iconPrefix, statIconPrefix);
+                        var genericRole = JobExtensions.GetRole((Job)(namePlateInfo == null ? 0 : namePlateInfo.GetJobID()));
+                        SeString? text = SeStringUtils.Color(PlayerStylesheet.GetPartySlotNumber(partySlot.Value, genericRole), PlayerStylesheet.GetRoleColor(genericRole));
+                        name = GetStateNametext(_configuration.ShowPlayerStatus ? iconID : -1, iconPrefix, statIconPrefix, text);
                         iconID = GetClassIcon(npObject.NamePlateInfo, _configuration.ShowPlayerStatus ? iconID : -1);
                     }
                     break;

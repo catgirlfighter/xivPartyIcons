@@ -7,9 +7,9 @@ using Dalamud.IoC;
 using Dalamud.Logging;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
-using PartyIcons.View;
+using PartyNamplates.View;
 
-namespace PartyIcons.Runtime
+namespace PartyNamplates.Runtime
 {
     public class ViewModeSetter
     {
@@ -73,15 +73,10 @@ namespace PartyIcons.Runtime
 
             if (_configuration.ChatContentMessage)
             {
-                _chatGui.PrintChat(new XivChatEntry { Message = $"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}.", Type = XivChatType.Echo });
+                _chatGui.PrintChat(new XivChatEntry { Message = $"Entering [{content.ContentMemberType.Row}-{content.RowId}] {content.Name}.", Type = (XivChatType)8774 });
             }
 
             var memberType = content.ContentMemberType.Row;
-            //if (content.RowId == 16 || content.RowId == 15)
-            //{
-            //    // Praetorium and Castrum Meridianum
-            //    memberType = 2;
-            //}
 
             PluginLog.Debug($"Territory changed {content.Name} (id {content.RowId} type {content.ContentType.Row}, terr {_clientState.TerritoryType}, memtype {content.ContentMemberType.Row}, overriden {memberType})");
 
@@ -107,6 +102,7 @@ namespace PartyIcons.Runtime
                     _chatNameUpdater.PartyMode = _configuration.ChatPvP;
                     break;
 
+                //case 12: bozja
                 default:
                     _nameplateView.PartyMode = _configuration.NameplateDungeon;
                     _chatNameUpdater.PartyMode = _configuration.ChatDungeon;

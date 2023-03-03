@@ -1,4 +1,4 @@
-﻿namespace PartyIcons.Entities
+﻿namespace PartyNamplates.Entities
 {
     public enum RoleId
     {
@@ -20,19 +20,6 @@
         public static RoleId Counterpart(RoleId roleId)
         {
             return roleId == 0 ? 0 : ((int)roleId % 2) == 0 ? roleId - 1 : roleId + 1;
-            /*return roleId switch
-            {
-                RoleId.MT => RoleId.OT,
-                RoleId.OT => RoleId.MT,
-                RoleId.H1 => RoleId.H2,
-                RoleId.H2 => RoleId.H1,
-                RoleId.M1 => RoleId.M2,
-                RoleId.M2 => RoleId.M1,
-                RoleId.R1 => RoleId.R2,
-                RoleId.R2 => RoleId.R1,
-                _         => RoleId.Undefined,
-            };
-            */
         }
     }
 }

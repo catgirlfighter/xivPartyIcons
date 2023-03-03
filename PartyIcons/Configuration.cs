@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
-using PartyIcons.Entities;
-using PartyIcons.View;
+using PartyNamplates.Entities;
+using PartyNamplates.View;
 
-namespace PartyIcons
+namespace PartyNamplates
 {
     [Serializable]
     public class Configuration : IPluginConfiguration
@@ -21,24 +21,20 @@ namespace PartyIcons
         public bool ShowPlayerStatus = true;
         public bool AvatarAnnouncementsInChat = false;
 
-        public IconSetId IconSetId
-        { get; set; } = IconSetId.GlowingColored;
+        public IconSetMode IconSetId { get; set; } = IconSetMode.GlowingColored;
         public NameplateSizeMode SizeMode { get; set; } = NameplateSizeMode.Large;
-
         public NameplateMode NameplateOverworld { get; set; } = NameplateMode.JobIconAndName;
         public NameplateMode NameplateAllianceRaid { get; set; } = NameplateMode.JobIcon;
         public NameplateMode NameplateDungeon { get; set; } = NameplateMode.JobIcon;
         public NameplateMode NameplateRaid { get; set; } = NameplateMode.RoleLetters;
         public NameplateMode NameplateOthers { get; set; } = NameplateMode.JobIconAndName;
         public NameplateMode NameplatePvP { get; set; } = NameplateMode.JobIconAndRoleLettersUncolored;
-
-        public ChatMode ChatOverworld { get; set; } = ChatMode.Role;
-        public ChatMode ChatAllianceRaid { get; set; } = ChatMode.Role;
-        public ChatMode ChatDungeon { get; set; } = ChatMode.Job;
-        public ChatMode ChatRaid { get; set; } = ChatMode.Role;
-        public ChatMode ChatOthers { get; set; } = ChatMode.Job;
+        public ChatMode ChatOverworld { get; set; } = ChatMode.GameDefault;
+        public ChatMode ChatAllianceRaid { get; set; } = ChatMode.GameDefault;
+        public ChatMode ChatDungeon { get; set; } = ChatMode.GameDefault;
+        public ChatMode ChatRaid { get; set; } = ChatMode.GameDefault;
+        public ChatMode ChatOthers { get; set; } = ChatMode.GameDefault;
         public ChatMode ChatPvP { get; set; } = ChatMode.GameDefault;
-
         public Dictionary<string, RoleId> StaticAssignments { get; set; } = new();
 
         private DalamudPluginInterface? _interface;
